@@ -1,0 +1,61 @@
+on:
+  push:
+    branches: [master]
+
+name: ci
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest code
+        uses: actions/checkout@v3
+
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "."
+          target: "~/dev/saas-boilerplate"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ~/dev/saas-boilerplate
+
+            # Write .env from GitHub secrets (single-quoted to prevent shell expansion)
+            {
+              printf 'DB_USER=%s\n'              '${{ secrets.DB_USER }}'
+              printf 'DB_PASSWORD=%s\n'          '${{ secrets.DB_PASSWORD }}'
+              printf 'DB_NAME=%s\n'              '${{ secrets.DB_NAME }}'
+              printf 'DATABASE_URL=%s\n'         '${{ secrets.DATABASE_URL }}'
+              printf 'JWT_SECRET=%s\n'           '${{ secrets.JWT_SECRET }}'
+              printf 'STRIPE_SECRET_KEY=%s\n'    '${{ secrets.STRIPE_SECRET_KEY }}'
+              printf 'STRIPE_WEBHOOK_SECRET=%s\n' '${{ secrets.STRIPE_WEBHOOK_SECRET }}'
+              printf 'STRIPE_PRICE_STARTER=%s\n'  '${{ secrets.STRIPE_PRICE_STARTER }}'
+              printf 'STRIPE_PRICE_PRO=%s\n'      '${{ secrets.STRIPE_PRICE_PRO }}'
+              printf 'GOOGLE_CLIENT_ID=%s\n'      '${{ secrets.GOOGLE_CLIENT_ID }}'
+              printf 'GOOGLE_CLIENT_SECRET=%s\n'  '${{ secrets.GOOGLE_CLIENT_SECRET }}'
+              printf 'GITHUB_CLIENT_ID=%s\n'      '${{ secrets.GITHUB_CLIENT_ID }}'
+              printf 'GITHUB_CLIENT_SECRET=%s\n'  '${{ secrets.GITHUB_CLIENT_SECRET }}'
+              printf 'API_PUBLIC_URL=%s\n'        '${{ secrets.API_PUBLIC_URL }}'
+              printf 'FRONTEND_URL=%s\n'          '${{ secrets.FRONTEND_URL }}'
+              printf 'SMTP_HOST=%s\n'            '${{ secrets.SMTP_HOST }}'
+              printf 'SMTP_USER=%s\n'            '${{ secrets.SMTP_USER }}'
+              printf 'SMTP_PASS=%s\n'            '${{ secrets.SMTP_PASS }}'
+              printf 'ADMIN_EMAIL=%s\n'          '${{ secrets.ADMIN_EMAIL }}'
+            } > .env
+
+            # Deploy
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+              --env-file .env up -d --build --force-recreate --remove-orphans
+
+            # Clean up — .env must not remain on the server
+            rm .env

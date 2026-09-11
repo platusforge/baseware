@@ -1,0 +1,74 @@
+# ── Prod override: Traefik TLS, tuned DB, backups ─────────────────────────
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d
+services:
+  traefik:
+    image: traefik:v2.11
+    restart: always
+    ports: ["80:80", "443:443", "3001:3001"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/traefik/:/data/
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.apihttp.address=:3001
+      - --certificatesresolvers.le.acme.tlschallenge=true
+      - --certificatesresolvers.le.acme.email=${ADMIN_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/data/acme.json
+    networks: [app-network]
+
+  db:
+    restart: always
+    shm_size: 256mb
+    command:
+      - postgres
+      - -c shared_buffers=256MB
+      - -c effective_cache_size=768MB
+      - -c work_mem=16MB
+      - -c wal_compression=on
+      - -c max_connections=100
+      - -c log_min_duration_statement=3000
+
+  server:
+    restart: always
+    build: { target: production }
+    volumes: ["~/server-generated/:/data/generated/"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.server.entrypoints=apihttp"
+      - "traefik.http.services.server.loadbalancer.server.port=${SERVER_PORT:-3000}"
+
+  web:
+    restart: always
+    build:
+      target: production-stage
+      args: [VITE_API_URL=/api]
+    environment:
+      - SERVER_UPSTREAM=http://server:${SERVER_PORT:-3000}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`app.example.com`)"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls.certresolver=le"
+      - "traefik.http.services.web.loadbalancer.server.port=80"
+
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+    volumes: [postgres_backups:/backups]
+    networks: [app-network]
+    depends_on: [db]
+
+volumes:
+  postgres_backups:

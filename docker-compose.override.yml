@@ -1,0 +1,31 @@
+# ── Dev override: hot reload, bind mounts, exposed ports ─────────────────
+# Auto-loaded by `docker compose up`.
+services:
+  db:
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      retries: 10
+
+  server:
+    build:
+      target: development
+    command: npx tsx watch src/app.ts
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - CHOKIDAR_USEPOLLING=1
+    ports: ["${SERVER_PORT:-3000}:${SERVER_PORT:-3000}"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  web:
+    build:
+      target: development
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    ports: ["5173:5173"]

@@ -1,0 +1,23 @@
+{
+  "name": "saas-boilerplate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Professional SaaS boilerplate — Express + React (Vite) + PostgreSQL. Open Architecture compliant.",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "docker compose up",
+    "dev:build": "docker compose up --build",
+    "prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d --build",
+    "test": "npm --workspace server test",
+    "lint": "npm --workspace server run lint & npm --workspace web run lint",
+    "prisma:generate": "npm --workspace server run prisma:generate",
+    "prisma:migrate": "npm --workspace server run prisma:migrate",
+    "db:seed": "npm --workspace server run db:seed"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

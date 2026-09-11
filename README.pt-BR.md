@@ -1,0 +1,90 @@
+# SaaS Boilerplate
+
+Starter SaaS pronto para produção: **Express + React (Vite) + PostgreSQL**, 100% compatível com **Open Architecture**, com tudo que os boilerplates pagos ($199–$349) entregam — e nada do que eles omitem para B2B.
+
+> 🇺🇸 English? Read [README.md](./README.md).
+> 🤖 Vai construir com agente de IA? Leia [AGENTS.md](./AGENTS.md) primeiro — é o manual oficial de construção.
+
+## Por que este boilerplate
+
+| O que os pagos fazem | Este boilerplate |
+|---|---|
+| Auth (email + OAuth) | ✅ Email/senha + OAuth Google/GitHub (state + PKCE, vínculo por email verificado) |
+| Organizações / times / convites / RBAC | ✅ Multi-tenancy first-class, billing por organização |
+| Assinaturas Stripe + portal + webhooks | ✅ Checkout, portal, webhooks robustos (verificação fail-closed, idempotência, dunning) |
+| Landing + preços + FAQ + blog | ✅ Landing, tabela de preços, FAQ, meta SEO |
+| Painel admin, audit logs, API keys | ✅ Os três incluídos |
+| Email transacional | ✅ Adapter Nodemailer (compatível Resend/SMTP) |
+| Docker + CI/CD | ✅ Compose em 3 arquivos, Dockerfiles multi-stage, Traefik TLS, GH Actions |
+| Testes + docs + regras de IA | ✅ Testes Jest, docs bilíngues, AGENTS.md |
+
+## Stack
+
+- **server**: Express 4, TypeScript strict, Prisma 6, PostgreSQL 16, Zod, Winston + Morgan, Helmet, rate-limit, Stripe, Nodemailer, node-cron.
+- **web**: React 18, Vite 5, React Router 6, CSS Modules + variáveis CSS (dark/light), i18n EN + PT-BR.
+- **infra**: Docker Compose (base/override/prod), Nginx SPA + proxy `/api`, Traefik TLS, deploy via GH Actions.
+
+## Início rápido (Docker — único caminho suportado)
+
+```sh
+cp .env.example .env   # defina JWT_SECRET (>=32 chars) + DB_PASSWORD
+docker compose up --build
+# web → http://localhost:5173 · api → http://localhost:3000/health
+docker compose exec server npx prisma migrate dev
+docker compose exec server npm run db:seed   # admin@example.com / Change-me-123!
+```
+
+Produção:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d --build
+```
+
+## Arquitetura (cadeia de 5 camadas)
+
+```
+Route → Controller → Service → Repository (interface) → Implementation
+```
+
+- Routes só têm paths + middlewares. Controllers fazem parse → call → respond (sem lógica, sem log). Services têm validação (Zod), regra de negócio e logs. Repositories têm acesso a dados atrás de interfaces. DI manual em `server/src/repositories/index.ts` e `server/src/adapters/index.ts`. `@/` aponta para `src/` nos dois lados. Arquivos sempre em kebab-case minúsculo. Commits em inglês, Conventional Commits.
+
+Referência completa: [`docs/pt-BR/`](./docs/pt-BR/inicio-rapido.md) e [`docs/en/`](./docs/en/getting-started.md).
+
+## Segurança de auth (obrigatória)
+
+- Access 15min + refresh rotativo 7 dias em cookies `HttpOnly + Secure + SameSite`. Nunca `localStorage`.
+- Erro genérico `Invalid credentials.` (sem enumeração), compare com dummy-hash, `active` + lockout, bcrypt custo 12.
+- Rate-limit em `/login` (10/15min) e `/reset/*` (3/h). Tokens de reset com hash SHA-256, uso único, 1h.
+- Helmet + CORS allowlist + TLS-only em prod. Nunca logar segredos.
+
+## Modelo de cobrança
+
+- `Organization` é dona do customer Stripe + `Subscription` (plano, status, seats, fim do período).
+- `POST /billing/checkout` → Stripe Checkout; `POST /billing/portal` → Portal; `POST /billing/webhook` (verificado + idempotente) → sync + dunning + audit.
+- `GET /auth/oauth/:provider` → login Google/GitHub (vincula emails verificados, provisiona workspace no signup).
+- Modo mock gracioso sem `STRIPE_SECRET_KEY` (dev local sem Stripe).
+- Planos centralizados em `server/src/adapters/stripe/stripe-billing-adapter.ts` (`PLANS`) e espelhados em `web/src/components/pricing-table/`.
+
+## Estrutura
+
+```
+server/src/{routes,controllers,services,repositories,adapters,types,common,constants,lib}
+web/src/{pages,dashboard,components,contexts,routes,services,styles,types}
+docs/{en,pt-BR}/ · AGENTS.md · docker-compose*.yml · .github/workflows/ci.yml
+```
+
+## Scripts
+
+| Comando | Para quê |
+|---|---|
+| `docker compose up` | Dev (hot reload nos dois apps) |
+| `npm --workspace server test` | Testes unitários Jest |
+| `npm --workspace server run db:seed` | Org demo + admin + roles |
+| `docker compose exec server npx prisma migrate dev` | Nova migration |
+| `docker compose exec server npx prisma generate` | Obrigatório após mudar schema |
+
+## Documentação
+
+- Português: [`inicio-rapido.md`](./docs/pt-BR/inicio-rapido.md) · [`billing.md`](./docs/pt-BR/billing.md) · [`auth.md`](./docs/pt-BR/auth.md) · [`deploy.md`](./docs/pt-BR/deploy.md) · [`customizacao.md`](./docs/pt-BR/customizacao.md)
+- English: [`docs/en/`](./docs/en/getting-started.md)
+- Agentes de IA: [`AGENTS.md`](./AGENTS.md) (leitura obrigatória antes de gerar features)

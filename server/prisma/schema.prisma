@@ -1,0 +1,258 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  owner
+  admin
+  member
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  canceled
+  incomplete
+}
+
+model User {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  name                String?
+  avatarUrl           String?
+  passwordHash        String?   @omit
+  emailVerifiedAt     DateTime?
+  active              Boolean   @default(true)
+  type                String    @default("user") // "admin" | "user"
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  passwordChangedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  memberships   Membership[]
+  permission    UserPermission?
+  accounts      OAuthAccount[]
+  invitations   Invitation[]   @relation("invited_by")
+  apiKeys       ApiKey[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  resetTokens   PasswordResetToken[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Role {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  allowedPages String[] @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("roles")
+}
+
+model UserPermission {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  allowedPages   String[] @default([])
+  allowedRegions String[] @default([])
+  configured     Boolean  @default(true)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("user_permissions")
+}
+
+model Organization {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  logoUrl         String?
+  active          Boolean  @default(true)
+  stripeCustomerId String?
+  plan            String   @default("free")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  memberships   Membership[]
+  invitations   Invitation[]
+  subscriptions Subscription[]
+  apiKeys       ApiKey[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+model Membership {
+  id             String         @id @default(uuid())
+  userId         String
+  organizationId String
+  role           MembershipRole @default(member)
+  createdAt      DateTime       @default(now())
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@map("memberships")
+}
+
+model Invitation {
+  id             String         @id @default(uuid())
+  organizationId String
+  email          String
+  role           MembershipRole @default(member)
+  tokenHash      String         @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  invitedById    String
+  invitedBy      User           @relation("invited_by", fields: [invitedById], references: [id], onDelete: Cascade)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("invitations")
+}
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  organizationId     String
+  stripeSubscriptionId String?          @unique
+  stripeCustomerId   String?
+  status             SubscriptionStatus @default(incomplete)
+  plan               String             @default("free")
+  seats              Int                @default(1)
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean            @default(false)
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([organizationId])
+  @@map("subscriptions")
+}
+
+model UsageEvent {
+  id             String   @id @default(uuid())
+  organizationId String
+  metric         String
+  quantity       Int      @default(1)
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, metric])
+  @@map("usage_events")
+}
+
+model PasswordResetToken {  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  jti       String    @unique
+  family    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  replacedBy String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([family])
+  @@map("refresh_tokens")
+}
+
+model OAuthAccount {
+  id         String   @id @default(uuid())
+  userId     String
+  provider   String
+  providerId String
+  email      String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model WebhookEvent {
+  id        String   @id @default(uuid())
+  eventId   String   @unique
+  type      String
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@map("webhook_events")
+}
+
+model ApiKey {
+  id             String        @id @default(uuid())
+  userId         String
+  organizationId String?
+  name           String
+  keyPrefix      String
+  keyHash        String        @unique
+  scopes         String[]      @default([])
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  userId         String?
+  organizationId String?
+  action         String
+  entity         String?
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  title     String
+  body      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
