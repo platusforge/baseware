@@ -80,7 +80,7 @@ export class HandleOAuthCallbackService {
             email: profile.email,
             name,
             avatarUrl: profile.avatarUrl,
-            emailVerifiedAt: profile.emailVerifiedAt ? new Date() : undefined,
+            emailVerifiedAt: profile.emailVerified ? new Date() : undefined,
           });
           await this.oauthAccountRepository.create({
             userId: created.id,

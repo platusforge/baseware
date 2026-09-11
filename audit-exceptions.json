@@ -1,0 +1,10 @@
+[
+  {
+    "advisory": "GHSA-ggr8-5vv4-36mx",
+    "package": "deepmerge-ts",
+    "via": ["prisma CLI (devDependency)"],
+    "severity": "high",
+    "reason": "Stack exhaustion requires merging attacker-controlled recursive object graphs. The only reachable path is @prisma/config merging local prisma config files at build/migrate time — never at runtime, never with remote input. Re-evaluate on Prisma upgrades.",
+    "expires": "2027-06-01"
+  }
+]

@@ -110,4 +110,28 @@ describe("HandleBillingWebhookService", () => {
     expect(mockSubs.updateStatus).not.toHaveBeenCalled();
     expect(mockAudit.append).toHaveBeenCalledWith(expect.objectContaining({ action: "billing.customer.created" }));
   });
+
+  it("should skip mutation on unknown Stripe statuses (no retry loop)", async () => {
+    const { service, mockSubs, mockAudit } = makeService();
+    const result = await service.execute(event({
+      id: "evt_weird",
+      data: { subscriptionId: "sub_123", customerId: "cus_123", status: "paused", priceId: "price_pro", seats: 1 },
+    }));
+    expect(result).toEqual({ received: true });
+    expect(mockSubs.upsertByStripeId).not.toHaveBeenCalled();
+    expect(mockAudit.append).toHaveBeenCalledWith(expect.objectContaining({ action: "billing.customer.subscription.updated.unknown-status" }));
+  });
+
+  it("should keep the current plan on unknown price ids (no silent downgrade)", async () => {
+    const { service, mockSubs } = makeService({
+      subs: {
+        upsertByStripeId: jest.fn().mockResolvedValue(undefined),
+        updateStatus: jest.fn().mockResolvedValue(undefined),
+        findOrganizationId: jest.fn().mockResolvedValue("o1"),
+        findByOrganization: jest.fn().mockResolvedValue({ plan: "pro", status: "active", seats: 3, currentPeriodEnd: null }),
+      },
+    });
+    await service.execute(event({ id: "evt_price", data: { subscriptionId: "sub_123", customerId: "cus_123", status: "active", priceId: "price_unknown", seats: 1 } }));
+    expect(mockSubs.upsertByStripeId).toHaveBeenCalledWith(expect.objectContaining({ plan: "pro" }));
+  });
 });

@@ -4,11 +4,42 @@ on:
 
 name: ci
 jobs:
-  deploy:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Get latest code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck server
+        run: npm --workspace server run lint
+
+      - name: Typecheck web
+        run: npm --workspace web run lint
+
+      - name: Unit tests
+        run: npm --workspace server test
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          JWT_SECRET: ci-test-secret-min-32-chars-long-1234
+
+      - name: Audit production dependencies
+        run: node scripts/audit-gate.mjs
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - name: Get latest code
+        uses: actions/checkout@v4
 
       - name: Copy files to VPS
         uses: appleboy/scp-action@v1.0.0
@@ -47,9 +78,9 @@ jobs:
               printf 'GITHUB_CLIENT_SECRET=%s\n'  '${{ secrets.GITHUB_CLIENT_SECRET }}'
               printf 'API_PUBLIC_URL=%s\n'        '${{ secrets.API_PUBLIC_URL }}'
               printf 'FRONTEND_URL=%s\n'          '${{ secrets.FRONTEND_URL }}'
-              printf 'SMTP_HOST=%s\n'            '${{ secrets.SMTP_HOST }}'
-              printf 'SMTP_USER=%s\n'            '${{ secrets.SMTP_USER }}'
-              printf 'SMTP_PASS=%s\n'            '${{ secrets.SMTP_PASS }}'
+              printf 'RESEND_API_KEY=%s\n'       '${{ secrets.RESEND_API_KEY }}'
+              printf 'SENTRY_DSN=%s\n'           '${{ secrets.SENTRY_DSN }}'
+              printf 'POSTHOG_KEY=%s\n'          '${{ secrets.POSTHOG_KEY }}'
               printf 'ADMIN_EMAIL=%s\n'          '${{ secrets.ADMIN_EMAIL }}'
             } > .env
 

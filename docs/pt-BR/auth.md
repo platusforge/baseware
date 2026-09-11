@@ -1,18 +1,24 @@
 # Auth
 
-Sessões em cookie: access 15min + refresh rotativo 7 dias (`HttpOnly + Secure + SameSite=Lax`).
+Sessões em cookie: access 15min + refresh rotativo 7 dias (`HttpOnly + Secure + SameSite=Lax`). O SPA tenta `/auth/refresh` silenciosamente uma vez no 401 antes de deslogar.
+
+Regras de lifetime: troca/reset de senha revoga todas as sessões na hora; usuários desativados são rejeitados no próximo request (access tokens carregam `iat`, comparado com `passwordChangedAt`).
 
 ## Endpoints
 
 | Método | Rota | Notas |
 |---|---|---|
-| POST | `/auth/register` | Validado com Zod, bcrypt-12 |
+| POST | `/auth/register` | Validado com Zod, bcrypt-12, rate-limit 20/h, resposta genérica (sem enumeração), envia e-mail de verificação |
 | POST | `/auth/login` | Rate-limit 10/15min, erros genéricos, lockout 5→15min / 10→1h |
-| POST | `/auth/refresh` | Rotaciona o par, reuso revoga a família |
+| POST | `/auth/refresh` | Rotaciona o par, reuso revoga a família, rejeita inativos |
 | POST | `/auth/logout` | Limpa cookies, revoga `jti` |
-| GET | `/auth/me` | Restaura sessão no `AuthContext` |
+| GET | `/auth/me` | Restaura sessão no `AuthContext` (inclui `permissions` p/ `PageRoute`) |
+| POST | `/auth/password` | Troca de senha (atual obrigatória), revoga as demais sessões |
+| DELETE | `/auth/account` | Exclui a própria conta (confirmação de senha quando houver) |
 | POST | `/auth/reset/request` | Sempre 200, rate-limit 3/h |
-| POST | `/auth/reset/confirm` | Token SHA-256 uso único, 1h |
+| POST | `/auth/reset/confirm` | Token SHA-256 uso único, 1h, revoga todas as sessões |
+| POST | `/auth/verify/request` | Reenvia e-mail de verificação (autenticado, rate-limit 3/h) |
+| POST | `/auth/verify/confirm` | Confirma token assinado de 24h |
 | GET | `/auth/oauth/providers` | Lista `google`/`github` + flag `configured` (controla os botões do login) |
 | GET | `/auth/oauth/:provider` | Rate-limit 30/15min, grava cookies `state`+PKCE, 302 para o provider |
 | GET | `/auth/oauth/:provider/callback` | Valida `state`, troca o code, emite sessão em cookie, 302 para o app |

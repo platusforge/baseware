@@ -6,15 +6,23 @@ import { RefreshSessionService } from "@/services/auth-service/refresh-session-s
 import { RequestPasswordResetService, ConfirmPasswordResetService } from "@/services/auth-service/password-reset-service";
 import { StartOAuthService } from "@/services/auth-service/start-oauth-service";
 import { HandleOAuthCallbackService } from "@/services/auth-service/handle-oauth-callback-service";
-import { userRepository, passwordHasher, refreshTokenRepository, passwordResetRepository, oauthAccountRepository, organizationRepository, membershipRepository, auditRepository } from "@/repositories";
+import { RequestEmailVerificationService, ConfirmEmailVerificationService } from "@/services/auth-service/email-verification-service";
+import { ChangePasswordService, DeleteAccountService } from "@/services/account-service/account-service";
+import { GetPermissionsService } from "@/services/permission-service/get-permissions-service";
+import { userRepository, passwordHasher, refreshTokenRepository, passwordResetRepository, oauthAccountRepository, organizationRepository, membershipRepository, auditRepository, permissionRepository } from "@/repositories";
 import { mailAdapter, getOAuthAdapters, listOAuthProviders } from "@/adapters";
-import { verifyToken } from "@/lib/jwt";
+import { verifyToken, accessCookieMaxAge, refreshCookieMaxAge } from "@/lib/jwt";
 
-const registerService = new RegisterService(userRepository, passwordHasher);
+const registerService = new RegisterService(userRepository, passwordHasher, mailAdapter);
 const loginService = new LoginService(userRepository, passwordHasher, refreshTokenRepository);
-const refreshService = new RefreshSessionService(refreshTokenRepository);
+const refreshService = new RefreshSessionService(refreshTokenRepository, userRepository);
 const requestResetService = new RequestPasswordResetService(userRepository, passwordResetRepository, mailAdapter);
-const confirmResetService = new ConfirmPasswordResetService(userRepository, passwordResetRepository, passwordHasher, {} as never);
+const confirmResetService = new ConfirmPasswordResetService(userRepository, passwordResetRepository, passwordHasher, refreshTokenRepository);
+const requestVerifyService = new RequestEmailVerificationService(userRepository, mailAdapter);
+const confirmVerifyService = new ConfirmEmailVerificationService(userRepository);
+const changePasswordService = new ChangePasswordService(userRepository, passwordHasher, refreshTokenRepository);
+const deleteAccountService = new DeleteAccountService(userRepository, passwordHasher);
+const getPermissionsService = new GetPermissionsService(permissionRepository);
 const startOAuthService = new StartOAuthService(getOAuthAdapters());
 const handleOAuthCallbackService = new HandleOAuthCallbackService(
   getOAuthAdapters(),
@@ -36,6 +44,17 @@ function cookieOptions() {
   };
 }
 
+/** clearCookie only removes a cookie when domain/secure/sameSite/path match. */
+function clearCookieOptions() {
+  const { ...rest } = cookieOptions();
+  return rest;
+}
+
+function setSessionCookies(res: Response, accessToken: string, refreshToken: string) {
+  res.cookie("accessToken", accessToken, { ...cookieOptions(), maxAge: accessCookieMaxAge() });
+  res.cookie("refreshToken", refreshToken, { ...cookieOptions(), maxAge: refreshCookieMaxAge() });
+}
+
 export class AuthController {
   async register(req: Request, res: Response) {
     try {
@@ -50,8 +69,7 @@ export class AuthController {
   async login(req: Request, res: Response) {
     try {
       const result = await loginService.execute(req.body);
-      res.cookie("accessToken", (result as { accessToken: string }).accessToken, { ...cookieOptions(), maxAge: 15 * 60 * 1000 });
-      res.cookie("refreshToken", (result as { refreshToken: string }).refreshToken, { ...cookieOptions(), maxAge: 7 * 24 * 3600 * 1000 });
+      setSessionCookies(res, (result as { accessToken: string }).accessToken, (result as { refreshToken: string }).refreshToken);
       return res.json({ message: "Logged in." });
     } catch (err) {
       const status = (err as { status?: number }).status ?? 401;
@@ -63,8 +81,7 @@ export class AuthController {
   async refresh(req: Request, res: Response) {
     try {
       const result = await refreshService.execute(req.cookies?.refreshToken);
-      res.cookie("accessToken", result.accessToken, { ...cookieOptions(), maxAge: 15 * 60 * 1000 });
-      res.cookie("refreshToken", result.refreshToken, { ...cookieOptions(), maxAge: 7 * 24 * 3600 * 1000 });
+      setSessionCookies(res, result.accessToken, result.refreshToken);
       return res.json({ message: "Refreshed." });
     } catch {
       return res.status(401).json({ message: "Unauthorized" });
@@ -80,8 +97,8 @@ export class AuthController {
           await refreshTokenRepository.revokeJti(payload.jti);
         } catch { /* ignore */ }
       }
-      res.clearCookie("accessToken", { path: "/" });
-      res.clearCookie("refreshToken", { path: "/" });
+      res.clearCookie("accessToken", clearCookieOptions());
+      res.clearCookie("refreshToken", clearCookieOptions());
       return res.json({ message: "Logged out." });
     } catch {
       return res.status(400).json({ message: "Error" });
@@ -94,7 +111,8 @@ export class AuthController {
       if (!id) throw new Error("Missing credentials.");
       const user = await userRepository.findById(id);
       if (!user) return res.status(404).json({ message: "Not found" });
-      return res.json(user);
+      const permissions = await getPermissionsService.execute(id);
+      return res.json({ ...user, permissions });
     } catch (err) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -112,6 +130,50 @@ export class AuthController {
   async confirmReset(req: Request, res: Response) {
     try {
       const result = await confirmResetService.execute(req.body);
+      return res.json(result);
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+
+  async requestVerify(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      const result = await requestVerifyService.execute(userId);
+      return res.json(result);
+    } catch {
+      return res.status(400).json({ message: "Error" });
+    }
+  }
+
+  async confirmVerify(req: Request, res: Response) {
+    try {
+      const result = await confirmVerifyService.execute(req.body);
+      return res.json(result);
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+
+  async changePassword(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      const result = await changePasswordService.execute(userId, req.body);
+      return res.json(result);
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+
+  async deleteAccount(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      const result = await deleteAccountService.execute(userId, req.body);
+      res.clearCookie("accessToken", clearCookieOptions());
+      res.clearCookie("refreshToken", clearCookieOptions());
       return res.json(result);
     } catch (err) {
       return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
@@ -142,8 +204,8 @@ export class AuthController {
 
   async oauthCallback(req: Request, res: Response) {
     const clearTemp = () => {
-      res.clearCookie("oauth_state", { path: "/" });
-      res.clearCookie("oauth_verifier", { path: "/" });
+      res.clearCookie("oauth_state", clearCookieOptions());
+      res.clearCookie("oauth_verifier", clearCookieOptions());
     };
     try {
       const result = await handleOAuthCallbackService.execute({
@@ -154,8 +216,7 @@ export class AuthController {
         codeVerifier: (req.cookies?.oauth_verifier as string | undefined) ?? "",
       });
       clearTemp();
-      res.cookie("accessToken", result.accessToken, { ...cookieOptions(), maxAge: 15 * 60 * 1000 });
-      res.cookie("refreshToken", result.refreshToken, { ...cookieOptions(), maxAge: 7 * 24 * 3600 * 1000 });
+      setSessionCookies(res, result.accessToken, result.refreshToken);
       return res.redirect(`${env.FRONTEND_URL}/dashboard${result.isNewUser ? "?welcome=1" : ""}`);
     } catch (err) {
       clearTemp();

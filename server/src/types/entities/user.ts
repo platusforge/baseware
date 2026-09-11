@@ -3,6 +3,7 @@ export type IUser = {
   email: string;
   name: string | null;
   avatarUrl: string | null;
+  emailVerifiedAt: Date | null;
   active: boolean;
   type: string;
   createdAt: Date;

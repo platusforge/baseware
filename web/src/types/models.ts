@@ -3,6 +3,8 @@ export type IUser = {
   email: string;
   name: string | null;
   type: string;
+  emailVerifiedAt: string | null;
+  permissions?: IUserPermission | null;
 };
 
 export type IOrganization = {

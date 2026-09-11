@@ -26,7 +26,10 @@ Matriz de eventos:
 | `customer.subscription.created/updated` | Upsert da subscription, define plano (`priceToPlan`) |
 | `customer.subscription.deleted` | Status `canceled`, plano da org volta para `free` |
 | `invoice.payment_failed` | Status `past_due` + notificação in-app + email para owners/admins |
+| `invoice.payment_succeeded` | Recuperação: ressincroniza status/plano (fecha o ciclo de cobrança) |
 | qualquer outro | Só audit log |
+
+Status desconhecidos do Stripe são auditados e ignorados (sem throw, sem loop de retry); prices desconhecidos mantêm o plano atual em vez de fazer downgrade silencioso. Só owners/admins abrem checkout/portal (`requireOrgRole`); convites respeitam o limite de seats do plano (free 1, starter 5, pro 25).
 
 ## Dev local com `stripe listen`
 

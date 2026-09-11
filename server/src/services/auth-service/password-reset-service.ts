@@ -44,7 +44,7 @@ export class ConfirmPasswordResetService {
     private readonly userRepository: IUserRepository,
     private readonly resetRepository: IPasswordResetRepository,
     private readonly passwordHasher: { hash: (p: string) => Promise<string> },
-    private readonly refreshTokens: { revokeFamily?: never } | { revokeForUser?: (userId: string) => Promise<void> },
+    private readonly refreshTokenRepository: { revokeAllForUser: (userId: string) => Promise<void> },
   ) {}
 
   async execute(input: unknown) {
@@ -56,6 +56,8 @@ export class ConfirmPasswordResetService {
       const hash = await this.passwordHasher.hash(data.password);
       await this.userRepository.update(record.userId, { passwordHash: hash, passwordChangedAt: new Date() } as never);
       await this.resetRepository.markUsed(record.id);
+      // A password change must kill every existing session (stolen-session defense).
+      await this.refreshTokenRepository.revokeAllForUser(record.userId);
       logger.info("ConfirmPasswordResetService: completed");
       return { message: "Password updated." };
     } catch (err) {

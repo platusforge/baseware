@@ -1,11 +1,10 @@
 import { IMailAdapter, IBillingAdapter, IStorageAdapter, IOAuthAdapter, OAuthProviderName } from "./adapters";
-import { NodemailerMailAdapter } from "./nodemailer/nodemailer-mail-adapter";
-import { StripeBillingAdapter } from "./stripe/stripe-billing-adapter";
+import { ResendMailAdapter } from "./resend/resend-mail-adapter";import { StripeBillingAdapter } from "./stripe/stripe-billing-adapter";
 import { S3StorageAdapter } from "./s3/s3-storage-adapter";
 import { GoogleOAuthAdapter } from "./oauth/google-oauth-adapter";
 import { GitHubOAuthAdapter } from "./oauth/github-oauth-adapter";
 
-export const mailAdapter: IMailAdapter = new NodemailerMailAdapter();
+export const mailAdapter: IMailAdapter = new ResendMailAdapter();
 export const billingAdapter: IBillingAdapter = new StripeBillingAdapter();
 export const storageAdapter: IStorageAdapter = new S3StorageAdapter();
 

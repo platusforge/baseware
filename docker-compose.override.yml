@@ -11,9 +11,9 @@ services:
   server:
     build:
       target: development
-    command: npx tsx watch src/app.ts
+    command: tsx watch src/bin/www.ts
     volumes:
-      - ./server:/app
+      - ./server:/app/server
       - /app/node_modules
     environment:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
@@ -26,6 +26,6 @@ services:
     build:
       target: development
     volumes:
-      - ./web:/app
+      - ./web:/app/web
       - /app/node_modules
     ports: ["5173:5173"]

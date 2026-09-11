@@ -12,15 +12,15 @@ Starter SaaS pronto para produção: **Express + React (Vite) + PostgreSQL**, 10
 | Auth (email + OAuth) | ✅ Email/senha + OAuth Google/GitHub (state + PKCE, vínculo por email verificado) |
 | Organizações / times / convites / RBAC | ✅ Multi-tenancy first-class, billing por organização |
 | Assinaturas Stripe + portal + webhooks | ✅ Checkout, portal, webhooks robustos (verificação fail-closed, idempotência, dunning) |
-| Landing + preços + FAQ + blog | ✅ Landing, tabela de preços, FAQ, meta SEO |
+| Landing + preços + FAQ + blog | ✅ Landing, tabela de preços, FAQ, blog em arquivos, meta SEO/OG |
 | Painel admin, audit logs, API keys | ✅ Os três incluídos |
-| Email transacional | ✅ Adapter Nodemailer (compatível Resend/SMTP) |
+| Email transacional | ✅ Adapter Resend (HTTP API, sem CVEs de SMTP) |
 | Docker + CI/CD | ✅ Compose em 3 arquivos, Dockerfiles multi-stage, Traefik TLS, GH Actions |
 | Testes + docs + regras de IA | ✅ Testes Jest, docs bilíngues, AGENTS.md |
 
 ## Stack
 
-- **server**: Express 4, TypeScript strict, Prisma 6, PostgreSQL 16, Zod, Winston + Morgan, Helmet, rate-limit, Stripe, Nodemailer, node-cron.
+- **server**: Express 4, TypeScript strict, Prisma 6, PostgreSQL 16, Zod, Winston + Morgan, Helmet, rate-limit, Stripe, Resend, node-cron.
 - **web**: React 18, Vite 5, React Router 6, CSS Modules + variáveis CSS (dark/light), i18n EN + PT-BR.
 - **infra**: Docker Compose (base/override/prod), Nginx SPA + proxy `/api`, Traefik TLS, deploy via GH Actions.
 
@@ -55,7 +55,7 @@ Referência completa: [`docs/pt-BR/`](./docs/pt-BR/inicio-rapido.md) e [`docs/en
 - Access 15min + refresh rotativo 7 dias em cookies `HttpOnly + Secure + SameSite`. Nunca `localStorage`.
 - Erro genérico `Invalid credentials.` (sem enumeração), compare com dummy-hash, `active` + lockout, bcrypt custo 12.
 - Rate-limit em `/login` (10/15min) e `/reset/*` (3/h). Tokens de reset com hash SHA-256, uso único, 1h.
-- Helmet + CORS allowlist + TLS-only em prod. Nunca logar segredos.
+- Helmet + CORS allowlist + TLS no tráfego público em prod (porta `:3001` restrita a redes privadas via allowlist do Traefik — nunca exponha publicamente). Nunca logar segredos; códigos OAuth são removidos dos logs HTTP.
 
 ## Modelo de cobrança
 
@@ -88,3 +88,7 @@ docs/{en,pt-BR}/ · AGENTS.md · docker-compose*.yml · .github/workflows/ci.yml
 - Português: [`inicio-rapido.md`](./docs/pt-BR/inicio-rapido.md) · [`billing.md`](./docs/pt-BR/billing.md) · [`auth.md`](./docs/pt-BR/auth.md) · [`deploy.md`](./docs/pt-BR/deploy.md) · [`customizacao.md`](./docs/pt-BR/customizacao.md)
 - English: [`docs/en/`](./docs/en/getting-started.md)
 - Agentes de IA: [`AGENTS.md`](./AGENTS.md) (leitura obrigatória antes de gerar features)
+
+## Licença
+
+Uso comercial permitido sob [`LICENSE.md`](./LICENSE.md) (tier single-project ou unlimited, conforme seu recibo). É proibido revender ou redistribuir o código-fonte do boilerplate.

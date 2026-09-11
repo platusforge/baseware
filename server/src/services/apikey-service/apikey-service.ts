@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { logger } from "@/logger";
-import { IApiKeyRepository, IAuditRepository } from "@/types/repositories/saas-repositories";
+import { IApiKeyRepository, IAuditRepository, IMembershipRepository } from "@/types/repositories/saas-repositories";
 import { randomToken, sha256 } from "@/lib/crypto";
 
 const createKeySchema = z.object({
@@ -14,16 +14,21 @@ export class CreateApiKeyService {
   constructor(
     private readonly apiKeyRepository: IApiKeyRepository,
     private readonly auditRepository: IAuditRepository,
+    private readonly membershipRepository: IMembershipRepository,
   ) {}
 
   async execute(userId: string, input: unknown) {
     try {
       logger.info("CreateApiKeyService: starting...");
       const data = createKeySchema.parse(input);
+      if (data.organizationId) {
+        const role = await this.membershipRepository.findRole(userId, data.organizationId);
+        if (!role || !["owner", "admin"].includes(role)) throw new Error("Forbidden");
+      }
       const prefix = `sk_${randomToken(4)}`;
       const secret = randomToken(24);
       const raw = `${prefix}.${secret}`;
-      await this.apiKeyRepository.create({ userId, organizationId: data.organizationId, name: data.name, keyPrefix: prefix, keyHash: sha256(raw), scopes: data.scopes });
+      await this.apiKeyRepository.create({ userId, organizationId: data.organizationId, name: data.name, keyPrefix: prefix, keyHash: sha256(raw), scopes: data.scopes, expiresAt: data.expiresAt });
       await this.auditRepository.append({ userId, organizationId: data.organizationId, action: "apikey.created", entity: "api-key" });
       logger.info("CreateApiKeyService: completed");
       return { apiKey: raw, prefix };

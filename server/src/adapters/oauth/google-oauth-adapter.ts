@@ -39,6 +39,7 @@ export class GoogleOAuthAdapter implements IOAuthAdapter {
     });
     const tokenRes = await fetch(TOKEN_URL, {
       method: "POST",
+      signal: AbortSignal.timeout(15_000),
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
     });
@@ -47,6 +48,7 @@ export class GoogleOAuthAdapter implements IOAuthAdapter {
     if (!tokens.access_token) throw new Error("OAuth code exchange failed.");
 
     const infoRes = await fetch(USERINFO_URL, {
+      signal: AbortSignal.timeout(15_000),
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     });
     if (!infoRes.ok) throw new Error("OAuth profile fetch failed.");
@@ -67,3 +69,4 @@ export class GoogleOAuthAdapter implements IOAuthAdapter {
     };
   }
 }
+

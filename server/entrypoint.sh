@@ -15,9 +15,9 @@ if [ -n "$DB_USER" ]; then
   export DATABASE_URL
 fi
 
-# 3. Run migrations + regenerate client
-npx prisma migrate deploy
-npx prisma generate
+# 3. Run migrations + regenerate client (PATH includes /app/node_modules/.bin)
+prisma migrate deploy
+prisma generate
 
 # 4. Drop to non-root user
 exec su-exec appuser "$@"

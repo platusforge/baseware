@@ -7,6 +7,7 @@ const publicSelect = {
   email: true,
   name: true,
   avatarUrl: true,
+  emailVerifiedAt: true,
   active: true,
   type: true,
   createdAt: true,
@@ -33,6 +34,34 @@ export class PrismaUserRepository implements IUserRepository {
       logger.error(`PrismaUserRepository.findById error: ${err instanceof Error ? err.message : err}`);
       return null;
     }
+  }
+
+  async findSessionUser(id: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id },
+        select: { id: true, active: true, passwordChangedAt: true },
+      });
+    } catch (err) {
+      logger.error(`PrismaUserRepository.findSessionUser error: ${err instanceof Error ? err.message : err}`);
+      return null;
+    }
+  }
+
+  async findByIdWithHash(id: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id },
+        select: { ...publicSelect, passwordHash: true },
+      });
+    } catch (err) {
+      logger.error(`PrismaUserRepository.findByIdWithHash error: ${err instanceof Error ? err.message : err}`);
+      return null;
+    }
+  }
+
+  async remove(id: string) {
+    await prisma.user.delete({ where: { id } });
   }
 
   async create(data: { email: string; name?: string; passwordHash?: string; avatarUrl?: string; emailVerifiedAt?: Date }) {

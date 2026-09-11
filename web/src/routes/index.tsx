@@ -1,11 +1,14 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { PrivateRoute } from "./guards";
+import { PrivateRoute, PageRoute } from "./guards";
 import LandingPage from "@/pages/landing";
 import PricingPage from "@/pages/pricing";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
 import ResetPasswordPage from "@/pages/reset-password";
 import DashboardLayout from "@/pages/dashboard/layout";
+import BlogPage from "@/pages/blog";
+import BlogPostPage from "@/pages/blog/post";
+import VerifyEmailPage from "@/pages/verify-email";
 import DashboardIndex from "@/pages/dashboard/index";
 import MembersPage from "@/pages/dashboard/members";
 import BillingPage from "@/pages/dashboard/billing";
@@ -29,6 +32,9 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/blog" element={<BlogPage />} />
+      <Route path="/blog/:slug" element={<BlogPostPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -40,13 +46,13 @@ export function AppRoutes() {
           </PrivateRoute>
         }
       >
-        <Route index element={<DashboardIndex />} />
-        <Route path="members" element={<MembersPage />} />
-        <Route path="billing" element={<BillingPage />} />
-        <Route path="api-keys" element={<ApiKeysPage />} />
-        <Route path="audit" element={<AuditPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-        <Route path="admin" element={<AdminPage />} />
+        <Route index element={<PageRoute pageKey="dashboard"><DashboardIndex /></PageRoute>} />
+        <Route path="members" element={<PageRoute pageKey="members"><MembersPage /></PageRoute>} />
+        <Route path="billing" element={<PageRoute pageKey="billing"><BillingPage /></PageRoute>} />
+        <Route path="api-keys" element={<PageRoute pageKey="api-keys"><ApiKeysPage /></PageRoute>} />
+        <Route path="audit" element={<PageRoute pageKey="audit"><AuditPage /></PageRoute>} />
+        <Route path="settings" element={<PageRoute pageKey="settings"><SettingsPage /></PageRoute>} />
+        <Route path="admin" element={<PageRoute pageKey="admin"><AdminPage /></PageRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

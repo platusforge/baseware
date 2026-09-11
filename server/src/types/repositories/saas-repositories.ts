@@ -7,6 +7,7 @@ export type IOrganizationRepository = {
   findByStripeCustomerId: (stripeCustomerId: string) => Promise<IOrganization | null>;
   listForUser: (userId: string) => Promise<(IOrganization & { role: MembershipRole })[]>;
   update: (id: string, data: Partial<IOrganization>) => Promise<void>;
+  remove: (id: string) => Promise<void>;
 };
 
 export type IMembershipRepository = {
@@ -19,7 +20,10 @@ export type IMembershipRepository = {
 
 export type IInvitationRepository = {
   create: (data: { organizationId: string; email: string; role: MembershipRole; tokenHash: string; expiresAt: Date; invitedById: string }) => Promise<void>;
+  findById: (id: string) => Promise<{ id: string; organizationId: string; email: string; acceptedAt: Date | null } | null>;
   findByTokenHash: (tokenHash: string) => Promise<{ id: string; organizationId: string; email: string; role: MembershipRole; expiresAt: Date; acceptedAt: Date | null } | null>;
+  updateToken: (id: string, data: { tokenHash: string; expiresAt: Date }) => Promise<void>;
+  remove: (id: string) => Promise<void>;
   markAccepted: (id: string) => Promise<void>;
 };
 
@@ -31,8 +35,8 @@ export type ISubscriptionRepository = {
 };
 
 export type IApiKeyRepository = {
-  create: (data: { userId: string; organizationId?: string; name: string; keyPrefix: string; keyHash: string; scopes: string[] }) => Promise<{ id: string }>;
-  findByHash: (keyHash: string) => Promise<{ id: string; userId: string; organizationId: string | null; scopes: string[]; revokedAt: Date | null } | null>;
+  create: (data: { userId: string; organizationId?: string; name: string; keyPrefix: string; keyHash: string; scopes: string[]; expiresAt?: Date }) => Promise<{ id: string }>;
+  findByHash: (keyHash: string) => Promise<{ id: string; userId: string; organizationId: string | null; scopes: string[]; revokedAt: Date | null; expiresAt: Date | null } | null>;
   list: (userId: string) => Promise<{ id: string; name: string; keyPrefix: string; scopes: string[]; createdAt: Date }[]>;
   revoke: (id: string, userId: string) => Promise<void>;
   touch: (id: string) => Promise<void>;
@@ -56,10 +60,11 @@ export type IPasswordHasher = {
 
 export type IRefreshTokenRepository = {
   create: (data: { userId: string; jti: string; family: string; expiresAt: Date }) => Promise<void>;
-  findByJti: (jti: string) => Promise<{ userId: string; family: string; revokedAt: Date | null } | null>;
+  findByJti: (jti: string) => Promise<{ userId: string; family: string; revokedAt: Date | null; expiresAt: Date } | null>;
   rotate: (oldJti: string, next: { jti: string; expiresAt: Date }) => Promise<void>;
   revokeFamily: (family: string) => Promise<void>;
   revokeJti: (jti: string) => Promise<void>;
+  revokeAllForUser: (userId: string) => Promise<void>;
 };
 
 export type IPasswordResetRepository = {

@@ -9,8 +9,8 @@ import { env } from "@/env";
 const checkoutSchema = z.object({
   organizationId: z.string().uuid(),
   plan: z.enum(["starter", "pro"]),
-  successUrl: z.string().url().optional(),
-  cancelUrl: z.string().url().optional(),
+  successUrl: z.string().url().refine((u) => u.startsWith(env.FRONTEND_URL), { message: "URL not allowed." }).optional(),
+  cancelUrl: z.string().url().refine((u) => u.startsWith(env.FRONTEND_URL), { message: "URL not allowed." }).optional(),
 });
 
 export class CreateCheckoutService {
@@ -72,6 +72,11 @@ export class CreatePortalService {
   }
 }
 
+/** Stripe statuses this boilerplate understands. Anything else is audited and
+ *  skipped (never throws) so a new Stripe status can't wedge the webhook
+ *  into an infinite retry loop. */
+const KNOWN_STATUSES = new Set(["trialing", "active", "past_due", "canceled", "incomplete"]);
+
 export class HandleBillingWebhookService {
   constructor(
     private readonly subscriptionRepository: ISubscriptionRepository,
@@ -106,6 +111,10 @@ export class HandleBillingWebhookService {
           break;
         case "invoice.payment_failed":
           await this.applyPaymentFailed(event);
+          break;
+        case "invoice.payment_succeeded":
+          // Recovery path: a successful payment after past_due re-syncs status/plan.
+          await this.applySubscription(event, await this.enrichFromSubscription(event));
           break;
         default:
           await this.auditRepository.append({ action: `billing.${event.type}`, metadata: { eventId: event.id } });
@@ -150,7 +159,19 @@ export class HandleBillingWebhookService {
       return;
     }
     const status = details?.status ?? event.data.status ?? "active";
-    const plan = priceToPlan(details?.priceId ?? event.data.priceId);
+    if (!KNOWN_STATUSES.has(status)) {
+      logger.warn(`HandleBillingWebhookService: unknown status=${status} id=${event.id}`);
+      await this.auditRepository.append({ organizationId, action: `billing.${event.type}.unknown-status`, metadata: { eventId: event.id, status } });
+      return;
+    }
+    const priceId = details?.priceId ?? event.data.priceId;
+    let plan = priceToPlan(priceId);
+    if (plan === "free" && priceId) {
+      // Unknown price id: never silently downgrade — keep the current plan.
+      const current = await this.subscriptionRepository.findByOrganization(organizationId);
+      plan = current?.plan ?? "free";
+      logger.warn(`HandleBillingWebhookService: unknown price, keeping plan=${plan} id=${event.id}`);
+    }
     await this.subscriptionRepository.upsertByStripeId({
       stripeSubscriptionId: subscriptionId,
       organizationId,

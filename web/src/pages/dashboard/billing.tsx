@@ -8,18 +8,18 @@ export default function BillingPage() {
   const [status, setStatus] = useState<{ plan: string; status: string } | null>(null);
 
   useEffect(() => {
-    if (current) api.get<typeof status>(`/billing/status?orgId=${current.id}`).then(setStatus).catch(() => null);
+    if (current) api.get<typeof status>(`/billing/status?orgId=${current.id}`, current.id).then(setStatus).catch(() => null);
   }, [current]);
 
   async function checkout(plan: "starter" | "pro") {
     if (!current) return;
-    const s = await api.post<{ url: string }>("/billing/checkout", { organizationId: current.id, plan });
+    const s = await api.post<{ url: string }>("/billing/checkout", { organizationId: current.id, plan }, current.id);
     window.location.href = s.url;
   }
 
   async function portal() {
     if (!current) return;
-    const s = await api.post<{ url: string }>("/billing/portal", { organizationId: current.id });
+    const s = await api.post<{ url: string }>("/billing/portal", { organizationId: current.id }, current.id);
     window.location.href = s.url;
   }
 

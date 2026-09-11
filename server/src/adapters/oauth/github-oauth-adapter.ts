@@ -27,6 +27,7 @@ export class GitHubOAuthAdapter implements IOAuthAdapter {
   async exchangeCode(data: { code: string; codeVerifier: string; redirectUri: string }): Promise<OAuthProfile> {
     const tokenRes = await fetch(TOKEN_URL, {
       method: "POST",
+      signal: AbortSignal.timeout(15_000),
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({
         client_id: env.GITHUB_CLIENT_ID,
@@ -40,7 +41,8 @@ export class GitHubOAuthAdapter implements IOAuthAdapter {
     if (!tokens.access_token) throw new Error("OAuth code exchange failed.");
 
     const headers = { Authorization: `Bearer ${tokens.access_token}`, Accept: "application/vnd.github+json", "User-Agent": "saas-boilerplate" };
-    const [userRes, emailsRes] = await Promise.all([fetch(USER_URL, { headers }), fetch(EMAILS_URL, { headers })]);
+    const signal = AbortSignal.timeout(15_000);
+    const [userRes, emailsRes] = await Promise.all([fetch(USER_URL, { headers, signal }), fetch(EMAILS_URL, { headers, signal })]);
     if (!userRes.ok || !emailsRes.ok) throw new Error("OAuth profile fetch failed.");
     const user = (await userRes.json()) as { id?: number; name?: string; avatar_url?: string };
     const emails = (await emailsRes.json()) as { email?: string; primary?: boolean; verified?: boolean }[];
@@ -55,3 +57,4 @@ export class GitHubOAuthAdapter implements IOAuthAdapter {
     };
   }
 }
+

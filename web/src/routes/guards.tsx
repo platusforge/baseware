@@ -8,8 +8,18 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function PageRoute({ children }: { pageKey?: string; children: React.ReactNode }) {
+/**
+ * UX-only authorization gate. The backend (requirePage/requireOrgRole)
+ * always re-enforces — this just hides pages the user can't open.
+ */
+export function PageRoute({ pageKey, children }: { pageKey: string; children: React.ReactNode }) {
   const { user } = useAuth();
+  const permissions = user?.permissions;
   if (user?.type === "admin") return <>{children}</>;
+  if (!permissions) return <>{children}</>;
+  if (permissions.configured === false) return <Navigate to="/dashboard" replace />;
+  if (permissions.allowedPages.length > 0 && !permissions.allowedPages.includes(pageKey)) {
+    return <Navigate to="/dashboard" replace />;
+  }
   return <>{children}</>;
 }

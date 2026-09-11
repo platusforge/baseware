@@ -4,7 +4,7 @@ import { IBillingAdapter, NormalizedWebhookEvent, SubscriptionDetails } from "..
 
 function client(): Stripe | null {
   if (!env.STRIPE_SECRET_KEY) return null;
-  return new Stripe(env.STRIPE_SECRET_KEY);
+  return new Stripe(env.STRIPE_SECRET_KEY, { timeout: 10_000, maxNetworkRetries: 2 });
 }
 
 export const PLANS = [
@@ -75,7 +75,7 @@ export class StripeBillingAdapter implements IBillingAdapter {
       return { id: parsed.id, type: parsed.type, data: parsed.data ?? {} };
     }
     const event = stripe.webhooks.constructEvent(rawBody, signature, env.STRIPE_WEBHOOK_SECRET);
-    const obj = (event.data.object ?? {}) as Record<string, unknown>;
+    const obj = (event.data.object ?? {}) as unknown as Record<string, unknown>;
     const metadata = (obj.metadata ?? {}) as Record<string, string>;
     const customerDetails = obj.customer_details as { email?: string } | undefined;
     if (event.type === "checkout.session.completed") {

@@ -15,6 +15,6 @@
 
 ## Email / storage / analytics
 
-- Email: `adapters/nodemailer/` (any SMTP/Resend). Templates inline in services.
+- Email: `adapters/resend/` (Resend HTTP API). Templates inline in services.
 - Uploads: `POST /uploads/url` returns a presigned-style URL via `S3StorageAdapter`.
 - Analytics/errors: set `POSTHOG_KEY` / `SENTRY_DSN` — clients read the `VITE_*` twins.

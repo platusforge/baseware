@@ -14,6 +14,7 @@ const envSchema = z.object({
   BCRYPT_COST: z.coerce.number().default(12),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().default(10),
   RESET_RATE_LIMIT_MAX: z.coerce.number().default(3),
+  REGISTER_RATE_LIMIT_MAX: z.coerce.number().default(20),
   STRIPE_SECRET_KEY: z.string().optional().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().optional().default(""),
   STRIPE_PRICE_STARTER: z.string().optional().default(""),
@@ -23,14 +24,12 @@ const envSchema = z.object({
   GITHUB_CLIENT_ID: z.string().optional().default(""),
   GITHUB_CLIENT_SECRET: z.string().optional().default(""),
   EMAIL_FROM: z.string().default("no-reply@example.com"),
-  SMTP_HOST: z.string().optional().default(""),
-  SMTP_PORT: z.coerce.number().default(587),
-  SMTP_USER: z.string().optional().default(""),
-  SMTP_PASS: z.string().optional().default(""),
+  RESEND_API_KEY: z.string().optional().default(""),
   S3_ENDPOINT: z.string().optional().default(""),
   S3_BUCKET: z.string().optional().default(""),
   S3_ACCESS_KEY: z.string().optional().default(""),
   S3_SECRET_KEY: z.string().optional().default(""),
+  SENTRY_DSN: z.string().optional().default(""),
   LOG_LEVEL: z.string().default("info"),
 });
 
@@ -42,3 +41,10 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+// The placeholder shipped in .env.example is public. Refuse to boot
+// production with a compromised secret.
+if (process.env.NODE_ENV === "production" && env.JWT_SECRET.includes("change-me")) {
+  console.error("Refusing to boot: JWT_SECRET still uses the public placeholder. Generate one with: openssl rand -base64 48");
+  process.exit(1);
+}

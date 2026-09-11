@@ -1,25 +1,30 @@
-# ── Base: install deps + generate Prisma client ──────────────────────────────
+# ── Base: workspace deps + Prisma client ──────────────────────────────
+# NOTE: this dockerfile is built from the REPO ROOT (see docker-compose
+# build.context). npm workspaces keep a single lockfile at the root.
 FROM node:24-alpine AS base
 WORKDIR /app
-COPY package*.json ./
-COPY prisma ./prisma
-RUN npm ci
+ENV PATH=/app/node_modules/.bin:$PATH
+COPY package.json package-lock.json ./
+COPY server/package.json ./server/
+RUN npm ci --workspace=server
+COPY server/prisma ./server/prisma
+WORKDIR /app/server
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
-RUN npx prisma generate
-COPY entrypoint.sh /entrypoint.sh
+RUN prisma generate
+COPY server/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 RUN apk add --no-cache su-exec && addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# ── Development: hot-reload ──────────────────────────────────────────────────
+# ── Development: hot-reload ──────────────────────────────────────────
 FROM base AS development
-COPY . .
+COPY server/. .
 RUN mkdir -p /data/generated
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["node", "--import", "tsx", "--watch", "src/app.ts"]
+CMD ["node", "--import", "tsx", "--watch", "src/bin/www.ts"]
 
-# ── Production: compiled execution ───────────────────────────────────────────
+# ── Production: compiled execution ───────────────────────────────────
 FROM base AS production
-COPY . .
+COPY server/. .
 RUN npm run build && mkdir -p /data/generated
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "start"]

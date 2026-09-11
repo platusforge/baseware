@@ -2,7 +2,7 @@ import { prisma } from "@/prisma";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/logger";
 import { IApiKeyRepository, IAuditRepository, IInvitationRepository, IMembershipRepository, INotificationRepository, IOAuthAccountRepository, IOrganizationRepository, IPasswordResetRepository, IRefreshTokenRepository, ISubscriptionRepository, IWebhookEventRepository } from "@/types/repositories/saas-repositories";
-import { MembershipRole } from "@/types/entities/organization";
+import { IOrganization, MembershipRole } from "@/types/entities/organization";
 
 export class PrismaOrganizationRepository implements IOrganizationRepository {
   async create(data: { name: string; slug: string }) {
@@ -45,8 +45,11 @@ export class PrismaOrganizationRepository implements IOrganizationRepository {
       return [];
     }
   }
-  async update(id: string, data: Partial<{ name: string; plan: string; stripeCustomerId: string }>) {
+  async update(id: string, data: Partial<IOrganization>) {
     await prisma.organization.update({ where: { id }, data: data as never });
+  }
+  async remove(id: string) {
+    await prisma.organization.delete({ where: { id } });
   }
 }
 
@@ -91,6 +94,20 @@ export class PrismaInvitationRepository implements IInvitationRepository {
       logger.error(`PrismaInvitationRepository.findByTokenHash error: ${err instanceof Error ? err.message : err}`);
       return null;
     }
+  }
+  async findById(id: string) {
+    try {
+      return await prisma.invitation.findUnique({ where: { id } }) as never;
+    } catch (err) {
+      logger.error(`PrismaInvitationRepository.findById error: ${err instanceof Error ? err.message : err}`);
+      return null;
+    }
+  }
+  async updateToken(id: string, data: { tokenHash: string; expiresAt: Date }) {
+    await prisma.invitation.update({ where: { id }, data: { ...data, acceptedAt: null } });
+  }
+  async remove(id: string) {
+    await prisma.invitation.delete({ where: { id } }).catch(() => undefined);
   }
   async markAccepted(id: string) {
     await prisma.invitation.update({ where: { id }, data: { acceptedAt: new Date() } });
@@ -208,6 +225,9 @@ export class PrismaRefreshTokenRepository implements IRefreshTokenRepository {
   }
   async revokeJti(jti: string) {
     await prisma.refreshToken.updateMany({ where: { jti }, data: { revokedAt: new Date() } });
+  }
+  async revokeAllForUser(userId: string) {
+    await prisma.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
   }
 }
 

@@ -15,11 +15,28 @@ export const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
+const SENSITIVE_QUERY = new Set(["code", "state", "token", "access_token", "refresh_token"]);
+
+/** Redact OAuth codes, states and tokens from logged URLs. */
+function safeUrl(raw: string): string {
+  const qIndex = raw.indexOf("?");
+  if (qIndex === -1) return raw;
+  const params = new URLSearchParams(raw.slice(qIndex + 1));
+  let redacted = false;
+  for (const key of SENSITIVE_QUERY) {
+    if (params.has(key)) {
+      params.set(key, "[redacted]");
+      redacted = true;
+    }
+  }
+  return redacted ? `${raw.slice(0, qIndex)}?${params.toString()}` : raw;
+}
+
 export const morganMiddleware = morgan(
   (tokens, req, res) => {
     return [
       tokens.method(req, res),
-      tokens.url(req, res),
+      safeUrl(tokens.url(req, res) ?? ""),
       tokens.status(req, res),
       tokens["response-time"](req, res) + " ms",
       "-",

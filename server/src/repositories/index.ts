@@ -1,10 +1,13 @@
 import { IUserRepository } from "@/types/repositories/user-repository";
+import { IPermissionRepository } from "@/types/repositories/permission-repository";
 import { IApiKeyRepository, IAuditRepository, IInvitationRepository, IMembershipRepository, INotificationRepository, IOAuthAccountRepository, IOrganizationRepository, IPasswordHasher, IPasswordResetRepository, IRefreshTokenRepository, ISubscriptionRepository, IWebhookEventRepository } from "@/types/repositories/saas-repositories";
 import { PrismaUserRepository } from "./prisma/prisma-user-repository";
+import { PrismaPermissionRepository } from "./prisma/prisma-permission-repository";
 import { PrismaApiKeyRepository, PrismaAuditRepository, PrismaInvitationRepository, PrismaMembershipRepository, PrismaNotificationRepository, PrismaOAuthAccountRepository, PrismaOrganizationRepository, PrismaPasswordResetRepository, PrismaRefreshTokenRepository, PrismaSubscriptionRepository, PrismaWebhookEventRepository } from "./prisma/prisma-saas-repositories";
 import { BcryptPasswordHasher } from "./bcrypt/bcrypt-password-hasher";
 
 export const userRepository: IUserRepository = new PrismaUserRepository();
+export const permissionRepository: IPermissionRepository = new PrismaPermissionRepository();
 export const organizationRepository: IOrganizationRepository = new PrismaOrganizationRepository();
 export const membershipRepository: IMembershipRepository = new PrismaMembershipRepository();
 export const invitationRepository: IInvitationRepository = new PrismaInvitationRepository();

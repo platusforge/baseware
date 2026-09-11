@@ -26,7 +26,10 @@ Event matrix:
 | `customer.subscription.created/updated` | Upserts subscription, sets org plan (`priceToPlan`) |
 | `customer.subscription.deleted` | Status `canceled`, org plan back to `free` |
 | `invoice.payment_failed` | Status `past_due` + in-app notification + email to owners/admins |
+| `invoice.payment_succeeded` | Recovery path: re-syncs status/plan (closes the dunning loop) |
 | anything else | Audit log only |
+
+Unknown Stripe statuses are audited and skipped (never throw, so no retry loop); unknown price ids keep the current plan instead of silently downgrading. Only owners/admins can open checkout/portal (`requireOrgRole`); invites respect plan seat limits (free 1, starter 5, pro 25).
 
 ## Local development with `stripe listen`
 

@@ -15,9 +15,13 @@
     "lint": "npm --workspace server run lint & npm --workspace web run lint",
     "prisma:generate": "npm --workspace server run prisma:generate",
     "prisma:migrate": "npm --workspace server run prisma:migrate",
-    "db:seed": "npm --workspace server run db:seed"
+    "db:seed": "npm --workspace server run db:seed",
+    "security:audit": "node scripts/audit-gate.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "tar": "^7.5.21"
   }
 }

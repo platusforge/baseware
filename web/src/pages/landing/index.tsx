@@ -7,6 +7,7 @@ export default function LandingPage() {
   return (
     <div className="container" style={{ paddingTop: 40 }}>
       <nav style={{ display: "flex", gap: 16, justifyContent: "flex-end" }}>
+        <Link to="/blog" className="btn btn--ghost">Blog</Link>
         <button className="btn btn--ghost" onClick={() => setLang(lang === "en" ? "pt-BR" : "en")}>{lang === "en" ? "PT-BR" : "EN"}</button>
         <Link to="/login" className="btn btn--ghost">{t("login")}</Link>
         <Link to="/register" className="btn">{t("cta")}</Link>

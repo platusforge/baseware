@@ -12,18 +12,22 @@ const misc = new MiscController();
 router.post("/organizations", org.create.bind(org));
 router.get("/organizations", org.list.bind(org));
 router.post("/invitations/accept", org.accept.bind(org));
+router.delete("/organizations/:orgId", requireOrgRole("owner"), org.remove.bind(org));
 router.get("/organizations/:orgId/members", requireOrgRole(), org.members.bind(org));
 router.post("/organizations/:orgId/invitations", requireOrgRole("owner", "admin"), org.invite.bind(org));
+router.post("/organizations/:orgId/invitations/:id/resend", requireOrgRole("owner", "admin"), org.resendInvite.bind(org));
+router.delete("/organizations/:orgId/invitations/:id", requireOrgRole("owner", "admin"), org.revokeInvite.bind(org));
 
-router.post("/billing/checkout", billing.checkout.bind(billing));
-router.post("/billing/portal", billing.portal.bind(billing));
-router.get("/billing/status", billing.status.bind(billing));
+router.post("/billing/checkout", requireOrgRole("owner", "admin"), billing.checkout.bind(billing));
+router.post("/billing/portal", requireOrgRole("owner", "admin"), billing.portal.bind(billing));
+router.get("/billing/status", requireOrgRole(), billing.status.bind(billing));
 
 router.post("/api-keys", keys.create.bind(keys));
 router.get("/api-keys", keys.list.bind(keys));
 router.delete("/api-keys/:id", keys.revoke.bind(keys));
 
 router.get("/notifications", misc.notifications.bind(misc));
+router.post("/notifications/:id/read", misc.readNotification.bind(misc));
 router.get("/organizations/:orgId/audit", requireOrgRole("owner", "admin"), misc.audit.bind(misc));
 router.post("/uploads/url", misc.uploadUrl.bind(misc));
 

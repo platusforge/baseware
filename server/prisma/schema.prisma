@@ -1,7 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["omitApi"]
-  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -28,7 +27,7 @@ model User {
   email               String    @unique
   name                String?
   avatarUrl           String?
-  passwordHash        String?   @omit
+  passwordHash        String?   // never selected: every query uses an explicit select without it
   emailVerifiedAt     DateTime?
   active              Boolean   @default(true)
   type                String    @default("user") // "admin" | "user"
@@ -157,7 +156,8 @@ model UsageEvent {
   @@map("usage_events")
 }
 
-model PasswordResetToken {  id        String    @id @default(uuid())
+model PasswordResetToken {
+  id        String    @id @default(uuid())
   userId    String
   tokenHash String    @unique
   expiresAt DateTime
