@@ -1,0 +1,49 @@
+.region {
+  position: fixed; z-index: 100;
+  bottom: 16px; right: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.toast {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-left-width: 4px;
+  box-shadow: var(--shadow-lg);
+  animation: slide 200ms ease;
+}
+
+.success { border-left-color: var(--color-success); }
+.error { border-left-color: var(--color-danger); }
+.info { border-left-color: var(--color-info); }
+
+.icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; flex-shrink: 0;
+  border-radius: 50%;
+  font-size: var(--text-xs); font-weight: 700;
+  background: var(--color-surface);
+}
+
+.message { margin: 0; flex: 1; font-size: var(--text-sm); }
+
+.close {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-text-secondary);
+  cursor: pointer; font-size: 11px;
+}
+
+.close:hover { background: var(--color-surface); color: var(--color-text); }
+
+@keyframes slide {
+  from { transform: translateY(8px); opacity: 0; }
+}
+
+@media (max-width: 639px) {
+  .region { left: 16px; bottom: 12px; }
+}

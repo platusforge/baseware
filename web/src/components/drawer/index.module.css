@@ -1,0 +1,30 @@
+.overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: var(--color-overlay);
+}
+
+.panel {
+  position: fixed; top: 0; bottom: 0;
+  width: min(320px, 88vw);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+
+.left { left: 0; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+.right { right: 0; border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+
+.header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px; border-bottom: 1px solid var(--color-border); }
+.title { margin: 0; font-size: var(--text-md); }
+
+.close {
+  width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-text-secondary);
+  font-size: 16px; cursor: pointer;
+}
+
+.close:hover { background: var(--color-surface); color: var(--color-text); }
+.body { padding: 16px; flex: 1; }

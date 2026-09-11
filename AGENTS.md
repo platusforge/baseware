@@ -32,6 +32,10 @@ New data source?
 New UI page?
 → web/src/pages/dashboard/{page}/index.tsx + index.module.css → routes/index.tsx (+ NAV_ITEMS) → PageRoute only if new audience; else PrivateRoute suffices
 
+New UI component?
+→ web/src/components/{name}/index.tsx + index.module.css → export in components/index.ts → document in docs/en/ui-kit.md + docs/pt-BR/ui-kit.md
+→ mobile-first CSS (base = phone, enhance with min-width queries), tokens only from global.css, keyboard + aria-label + 44px touch targets, tables always define responsive behavior
+
 New billing plan?
 → PLANS in adapters/stripe/stripe-billing-adapter.ts → env STRIPE_PRICE_* → Prisma plan string → pricing-table component → webhook mapping in HandleBillingWebhookService
 ```

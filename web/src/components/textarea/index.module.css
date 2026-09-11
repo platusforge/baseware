@@ -1,0 +1,17 @@
+.field { display: grid; gap: 6px; min-width: 0; }
+.label { font-size: var(--text-sm); font-weight: 600; }
+.area {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  resize: vertical;
+  min-height: 96px;
+  font: inherit;
+}
+.area:hover:not(:disabled) { border-color: var(--color-border-strong); }
+.invalid { border-color: var(--color-danger); }
+.hint { margin: 0; font-size: var(--text-xs); color: var(--color-text-secondary); }
+.error { margin: 0; font-size: var(--text-xs); color: var(--color-danger); font-weight: 600; }

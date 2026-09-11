@@ -1,11 +1,19 @@
-export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
+import styles from "./index.module.css";
+
+type Props = {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+};
+
+export function PageHeader({ title, subtitle, action }: Props) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-      <div>
-        <h1 style={{ margin: 0 }}>{title}</h1>
-        {subtitle && <p style={{ color: "var(--color-text-secondary)" }}>{subtitle}</p>}
+    <div className={styles.header}>
+      <div className={styles.text}>
+        <h1 className={styles.title}>{title}</h1>
+        {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
       </div>
-      {action}
+      {action && <div className={styles.action}>{action}</div>}
     </div>
   );
 }

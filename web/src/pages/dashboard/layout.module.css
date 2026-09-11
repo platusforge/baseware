@@ -1,0 +1,16 @@
+.brand { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topAvatar { display: inline-flex; }
+.nav { margin-top: 12px; display: grid; gap: 2px; }
+.footer { margin-top: 20px; display: grid; gap: 10px; }
+.user { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-secondary); }
+.drawerBody { display: grid; gap: 16px; align-content: start; }
+.drawerNav { display: grid; gap: 2px; }
+.drawerNav a {
+  display: block; padding: 12px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  min-height: var(--touch-target);
+}
+.drawerNav a.active { background: var(--color-surface); color: var(--color-text); }

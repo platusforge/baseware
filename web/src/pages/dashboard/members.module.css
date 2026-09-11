@@ -1,0 +1,8 @@
+.invite { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin-bottom: 16px; }
+.toolbar { margin-bottom: 12px; max-width: 360px; }
+
+@media (max-width: 639px) {
+  .invite { grid-template-columns: 1fr; }
+  .invite button { width: 100%; }
+  .toolbar { max-width: none; }
+}

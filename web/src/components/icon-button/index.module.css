@@ -1,0 +1,27 @@
+.iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+
+.iconbtn:hover:not(:disabled) { background: var(--color-surface); color: var(--color-text); }
+.iconbtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sm { width: 32px; height: 32px; }
+.md { width: 40px; height: 40px; }
+.lg { width: var(--touch-target); height: var(--touch-target); }
+
+.ghost { background: transparent; }
+.outline { border-color: var(--color-border); background: var(--color-surface); }
+.primary { background: var(--color-primary); color: var(--color-on-primary); }
+.primary:hover:not(:disabled) { background: var(--color-primary-hover); color: var(--color-on-primary); }
+
+.iconbtn svg { width: 1.1em; height: 1.1em; }
+.md svg, .lg svg { width: 20px; height: 20px; }

@@ -1,0 +1,31 @@
+.wrap { position: relative; display: flex; align-items: center; min-width: 0; }
+
+.icon {
+  position: absolute; left: 12px;
+  width: 18px; height: 18px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 10px 36px 10px 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.input:hover:not(:disabled) { border-color: var(--color-border-strong); }
+
+.clear {
+  position: absolute; right: 6px;
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.clear:hover { background: var(--color-surface); color: var(--color-text); }

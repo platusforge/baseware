@@ -1,1 +1,57 @@
-.x { display: none; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.sm { min-height: 32px; padding: 0 12px; font-size: var(--text-xs); }
+.md { min-height: 40px; padding: 0 16px; }
+.lg { min-height: var(--touch-target); padding: 0 20px; font-size: var(--text-md); }
+
+.primary { background: var(--color-primary); color: var(--color-on-primary); }
+.primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.primary:active:not(:disabled) { background: var(--color-primary-active); }
+
+.secondary { background: var(--color-surface-raised); color: var(--color-text); border-color: var(--color-border); }
+.secondary:hover:not(:disabled) { border-color: var(--color-border-strong); }
+
+.outline { background: transparent; color: var(--color-primary); border-color: var(--color-primary); }
+.outline:hover:not(:disabled) { background: var(--color-primary-soft); }
+
+.ghost { background: transparent; color: var(--color-text); }
+.ghost:hover:not(:disabled) { background: var(--color-surface); }
+
+.danger { background: var(--color-danger); color: #fff; }
+.danger:hover:not(:disabled) { background: var(--color-danger-hover); }
+
+.full { width: 100%; }
+
+.loader {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 639px) {
+  .md { min-height: var(--touch-target); }
+}

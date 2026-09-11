@@ -1,1 +1,107 @@
-.x { display: none; }
+.wrap { width: 100%; }
+.scroll { overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.scroll .table { min-width: 640px; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  font-size: var(--text-sm);
+}
+
+.table th, .table td { padding: 12px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.table thead th {
+  text-align: left;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover td { background: var(--color-surface-raised); }
+
+.align-left { text-align: left; }
+.align-center { text-align: center; }
+.align-right { text-align: right; }
+
+.sortBtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 0;
+  font: inherit; text-transform: inherit; letter-spacing: inherit;
+  color: inherit; cursor: pointer;
+}
+
+.sortBtn:hover { color: var(--color-text); }
+.arrow { font-size: 10px; }
+
+.checkCell { width: 44px; }
+.checkCell input { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+
+.actions { white-space: nowrap; text-align: right; }
+
+.selection { font-size: var(--text-sm); color: var(--color-text-secondary); margin: 8px 0 0; }
+
+.empty {
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--color-surface);
+}
+
+.emptyTitle { margin: 0 0 4px; font-weight: 700; font-size: var(--text-md); }
+.emptyHint { margin: 0 0 12px; font-size: var(--text-sm); color: var(--color-text-secondary); }
+
+/* Mobile: rows become stacked cards with inline labels */
+@media (max-width: 719px) {
+  .wrap:not(.scroll) .table,
+  .wrap:not(.scroll) .table tbody,
+  .wrap:not(.scroll) .table tr,
+  .wrap:not(.scroll) .table td { display: block; width: 100%; }
+
+  .wrap:not(.scroll) .table { background: transparent; border: 0; }
+  .wrap:not(.scroll) .table thead { display: none; }
+
+  .wrap:not(.scroll) .cardRow {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 4px 16px;
+    margin-bottom: 12px;
+  }
+
+  .wrap:not(.scroll) .table td {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border);
+    text-align: right;
+  }
+
+  .wrap:not(.scroll) .table td:last-child { border-bottom: 0; }
+
+  .wrap:not(.scroll) .table td::before {
+    content: attr(data-label);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+  }
+
+  .wrap:not(.scroll) .table td[data-title]::before { display: none; }
+  .wrap:not(.scroll) .table td[data-title] {
+    font-weight: 700;
+    font-size: var(--text-md);
+    justify-content: flex-start;
+  }
+
+  .wrap:not(.scroll) .checkCell { display: flex !important; }
+  .wrap:not(.scroll) .actions { justify-content: flex-end; }
+}

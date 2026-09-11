@@ -1,0 +1,27 @@
+.tip { position: relative; display: inline-flex; }
+
+.tip::after {
+  content: attr(data-tip);
+  position: absolute; z-index: 70;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 240px;
+  white-space: normal;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.tip:hover::after, .tip:focus-visible::after { opacity: 1; }
+
+.top::after { bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
+.bottom::after { top: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
+.left::after { right: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
+.right::after { left: calc(100% + 8px); top: 50%; transform: translateY(-50%); }

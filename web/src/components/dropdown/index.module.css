@@ -1,0 +1,50 @@
+.root { position: relative; display: inline-block; }
+
+.trigger {
+  background: none; border: 0; padding: 0;
+  font: inherit; color: inherit; cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.defaultTrigger {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 40px; padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--text-sm); font-weight: 600;
+}
+
+.defaultTrigger:hover { border-color: var(--color-border-strong); }
+.defaultTrigger svg { width: 14px; height: 14px; }
+
+.menu {
+  position: absolute; top: calc(100% + 6px); z-index: 50;
+  min-width: 200px; max-width: min(280px, 80vw);
+  margin: 0; padding: 6px;
+  list-style: none;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.right { right: 0; }
+.left { left: 0; }
+
+.item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 8px 10px;
+  border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-text);
+  font-size: var(--text-sm);
+  cursor: pointer; text-align: left;
+}
+
+.item:hover:not(:disabled), .item:focus-visible { background: var(--color-surface); }
+.item:disabled { opacity: 0.5; cursor: not-allowed; }
+.danger { color: var(--color-danger); }
+.icon { display: inline-flex; flex-shrink: 0; }
+.icon svg { width: 16px; height: 16px; }
