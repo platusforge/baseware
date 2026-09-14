@@ -1,24 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { STRINGS, type Lang } from "@/i18n/strings";
 
-type Lang = "en" | "pt-BR";
 const I18nContext = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (key: string) => string }>({} as never);
-
-const STRINGS: Record<Lang, Record<string, string>> = {
-  en: {
-    hero: "Ship your SaaS faster",
-    cta: "Start free",
-    pricing: "Pricing",
-    login: "Login",
-    dashboard: "Dashboard",
-  },
-  "pt-BR": {
-    hero: "Lance seu SaaS mais rápido",
-    cta: "Começar grátis",
-    pricing: "Preços",
-    login: "Entrar",
-    dashboard: "Painel",
-  },
-};
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("lang") as Lang) ?? "en");

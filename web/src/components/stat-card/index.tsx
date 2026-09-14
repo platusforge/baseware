@@ -4,11 +4,12 @@ type Props = {
   label: string;
   value: React.ReactNode;
   hint?: string;
+  loading?: boolean;
   delta?: { value: string; trend: "up" | "down" | "flat"; invert?: boolean };
   icon?: React.ReactNode;
 };
 
-export function StatCard({ label, value, hint, delta, icon }: Props) {
+export function StatCard({ label, value, hint, loading = false, delta, icon }: Props) {
   const good = delta && (delta.trend === "up" !== Boolean(delta.invert) ? "good" : delta.trend === "flat" ? "flat" : "bad");
   return (
     <div className={styles.card}>
@@ -16,7 +17,9 @@ export function StatCard({ label, value, hint, delta, icon }: Props) {
         <span className={styles.label}>{label}</span>
         {icon && <span className={styles.icon} aria-hidden="true">{icon}</span>}
       </div>
-      <p className={styles.value}>{value}</p>
+      <p className={styles.value} aria-busy={loading || undefined}>
+        {loading ? "—" : value}
+      </p>
       {(delta || hint) && (
         <p className={styles.meta}>
           {delta && (

@@ -19,6 +19,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
+      - NODE_ENV=${NODE_ENV:-development}
       - SERVER_PORT=${SERVER_PORT:-3000}
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
@@ -44,6 +45,17 @@ services:
       - S3_BUCKET=${S3_BUCKET:-}
       - S3_ACCESS_KEY=${S3_ACCESS_KEY:-}
       - S3_SECRET_KEY=${S3_SECRET_KEY:-}
+      - S3_REGION=${S3_REGION:-us-east-1}
+      - S3_PUBLIC_BASE_URL=${S3_PUBLIC_BASE_URL:-}
+      - UPLOAD_MAX_MB=${UPLOAD_MAX_MB:-10}
+      - REDIS_URL=${REDIS_URL:-}
+      - RATE_LIMIT_STORE=${RATE_LIMIT_STORE:-memory}
+      - LOGIN_RATE_LIMIT_MAX=${LOGIN_RATE_LIMIT_MAX:-10}
+      - RESET_RATE_LIMIT_MAX=${RESET_RATE_LIMIT_MAX:-3}
+      - REGISTER_RATE_LIMIT_MAX=${REGISTER_RATE_LIMIT_MAX:-20}
+      - REQUIRE_VERIFIED_EMAIL=${REQUIRE_VERIFIED_EMAIL:-true}
+      - TRIAL_DAYS=${TRIAL_DAYS:-14}
+      - APP_HOST=${APP_HOST:-app.example.com}
       - POSTHOG_KEY=${POSTHOG_KEY:-}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - LOG_LEVEL=${LOG_LEVEL:-info}

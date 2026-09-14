@@ -3,13 +3,15 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { NAV_ITEMS } from "@/routes";
 import { useAuth } from "@/contexts/auth-context";
 import { useOrganization } from "@/contexts/organization-context";
-import { Avatar, Button, Drawer, IconButton, Select } from "@/components";
+import { useI18n } from "@/contexts/i18n-context";
+import { Alert, Avatar, Button, Drawer, IconButton, Select } from "@/components";
 import styles from "./layout.module.css";
 
 export default function DashboardLayout() {
   const loc = useLocation();
   const nav = useNavigate();
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const { organizations, current, setCurrentId } = useOrganization();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -21,10 +23,10 @@ export default function DashboardLayout() {
         className={loc.pathname === item.path ? "active" : ""}
         onClick={() => setMenuOpen(false)}
       >
-        {item.label}
+        {t(item.labelKey)}
       </Link>
     )),
-    [loc.pathname],
+    [loc.pathname, t],
   );
 
   async function doLogout() {
@@ -55,7 +57,7 @@ export default function DashboardLayout() {
             <Avatar name={user?.email ?? "?"} size="sm" />
             <small className={styles.email}>{user?.email}</small>
           </span>
-          <Button variant="ghost" size="sm" onClick={doLogout}>Logout</Button>
+          <Button variant="ghost" size="sm" onClick={doLogout}>{t("logout")}</Button>
         </div>
       </aside>
 
@@ -68,11 +70,17 @@ export default function DashboardLayout() {
             options={organizations.map((o) => ({ value: o.id, label: `${o.name} (${o.plan})` }))}
           />
           <nav className={styles.drawerNav} aria-label="Dashboard">{links}</nav>
-          <Button variant="ghost" onClick={doLogout}>Logout ({user?.email})</Button>
+          <Button variant="ghost" onClick={doLogout}>{t("logout")} ({user?.email})</Button>
         </div>
       </Drawer>
 
       <main className="dashboard__content">
+        {user && !user.emailVerifiedAt && (
+          <Alert variant="warning" title={t("verifyEmail")}>{t("unverified")}</Alert>
+        )}
+        {user?.mustChangePassword && (
+          <Alert variant="danger">{t("mustChangePassword")}</Alert>
+        )}
         <Outlet />
       </main>
     </div>

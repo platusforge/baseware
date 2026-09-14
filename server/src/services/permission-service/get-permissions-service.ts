@@ -1,5 +1,8 @@
+import { z } from "zod";
 import { logger } from "@/logger";
 import { IPermissionRepository, ResolvedPermissions } from "@/types/repositories/permission-repository";
+
+const schema = z.string().min(1).max(128);
 
 export class GetPermissionsService {
   constructor(private readonly permissionRepository: IPermissionRepository) {}
@@ -8,7 +11,8 @@ export class GetPermissionsService {
     try {
       logger.info("GetPermissionsService: starting...");
       if (!userId) throw new Error("Missing credentials.");
-      const permissions = await this.permissionRepository.resolve(userId);
+      const id = schema.parse(userId);
+      const permissions = await this.permissionRepository.resolve(id);
       logger.info("GetPermissionsService: completed");
       return permissions;
     } catch (err) {

@@ -7,6 +7,16 @@ function client(): Stripe | null {
   return new Stripe(env.STRIPE_SECRET_KEY, { timeout: 10_000, maxNetworkRetries: 2 });
 }
 
+function isBillingConfigured(): boolean {
+  return Boolean(env.STRIPE_SECRET_KEY);
+}
+
+function assertBillingConfigured(): void {
+  if (!isBillingConfigured() && env.NODE_ENV === "production") {
+    throw new Error("Billing not configured.");
+  }
+}
+
 export const PLANS = [
   { id: "free", name: "Free", priceMonthly: 0, seats: 1, features: ["1 project", "Community support"] },
   { id: "starter", name: "Starter", priceMonthly: 19, priceId: env.STRIPE_PRICE_STARTER || undefined, seats: 5, features: ["5 projects", "5 seats", "Email support"] },
@@ -21,6 +31,7 @@ export function priceToPlan(priceId?: string): string {
 
 export class StripeBillingAdapter implements IBillingAdapter {
   async ensureCustomer(data: { organizationId: string; email: string; name: string }): Promise<string> {
+    assertBillingConfigured();
     const stripe = client();
     if (!stripe) return `cus_mock_${data.organizationId}`;
     const customer = await stripe.customers.create({ email: data.email, name: data.name, metadata: { organizationId: data.organizationId } });
@@ -28,6 +39,7 @@ export class StripeBillingAdapter implements IBillingAdapter {
   }
 
   async createCheckoutSession(data: { organizationId: string; customerId?: string; email: string; priceId: string; successUrl: string; cancelUrl: string }) {
+    assertBillingConfigured();
     const stripe = client();
     if (!stripe) return { url: `${data.successUrl}?mock=checkout&org=${data.organizationId}` };
     const session = await stripe.checkout.sessions.create({
@@ -43,6 +55,7 @@ export class StripeBillingAdapter implements IBillingAdapter {
   }
 
   async createPortalSession(data: { stripeCustomerId: string; returnUrl: string }) {
+    assertBillingConfigured();
     const stripe = client();
     if (!stripe) return { url: `${data.returnUrl}?mock=portal` };
     const session = await stripe.billingPortal.sessions.create({ customer: data.stripeCustomerId, return_url: data.returnUrl });
@@ -63,11 +76,27 @@ export class StripeBillingAdapter implements IBillingAdapter {
     };
   }
 
+  async listInvoices(stripeCustomerId: string) {
+    const stripe = client();
+    if (!stripe || stripeCustomerId.startsWith("cus_mock_")) return [];
+    const invoices = await stripe.invoices.list({ customer: stripeCustomerId, limit: 12 });
+    return invoices.data.map((inv) => ({
+      id: inv.id,
+      amount: inv.amount_paid || inv.amount_due || 0,
+      currency: inv.currency || "usd",
+      status: inv.status || "unknown",
+      created: inv.created || 0,
+      pdfUrl: inv.invoice_pdf || null,
+    }));
+  }
+
   constructWebhookEvent(rawBody: Buffer, signature: string): NormalizedWebhookEvent {
     const stripe = client();
     if (!stripe || !env.STRIPE_WEBHOOK_SECRET) {
       // Local dev without Stripe keys: only explicitly flagged mock payloads
-      // are accepted — anything else fails closed with 400.
+      // are accepted — anything else fails closed with 400. Production never
+      // accepts mocks: misconfiguration must fail closed, not sell.
+      if (env.NODE_ENV === "production") throw new Error("Webhook verification failed.");
       const parsed = JSON.parse(rawBody.toString() || "{}") as {
         mock?: boolean; id?: string; type?: string; data?: NormalizedWebhookEvent["data"];
       };

@@ -10,6 +10,8 @@ const publicSelect = {
   emailVerifiedAt: true,
   active: true,
   type: true,
+  mfaEnabled: true,
+  mustChangePassword: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -19,7 +21,14 @@ export class PrismaUserRepository implements IUserRepository {
     try {
       return await prisma.user.findUnique({
         where: { email },
-        select: { ...publicSelect, passwordHash: true, failedLoginAttempts: true, lockedUntil: true },
+        select: {
+          ...publicSelect,
+          passwordHash: true,
+          failedLoginAttempts: true,
+          lockedUntil: true,
+          mfaSecret: true,
+          mfaBackupCodes: true,
+        },
       }) as never as Awaited<ReturnType<IUserRepository["findByEmail"]>>;
     } catch (err) {
       logger.error(`PrismaUserRepository.findByEmail error: ${err instanceof Error ? err.message : err}`);
@@ -52,7 +61,7 @@ export class PrismaUserRepository implements IUserRepository {
     try {
       return await prisma.user.findUnique({
         where: { id },
-        select: { ...publicSelect, passwordHash: true },
+        select: { ...publicSelect, passwordHash: true, mfaSecret: true, mfaBackupCodes: true },
       });
     } catch (err) {
       logger.error(`PrismaUserRepository.findByIdWithHash error: ${err instanceof Error ? err.message : err}`);

@@ -54,13 +54,16 @@ Full reference: [`docs/en/`](./docs/en/getting-started.md), [`docs/pt-BR/`](./do
 
 - 15-min access + rotating 7-day refresh in `HttpOnly + Secure + SameSite` cookies. Never `localStorage`.
 - Generic `Invalid credentials.` (no enumeration), dummy-hash compare, `active` + lockout (`failedLoginAttempts`/`lockedUntil`), bcrypt cost 12.
-- Rate-limited `/login` (10/15min) and `/reset/*` (3/h). Password reset tokens SHA-256 hashed, single-use, 1h expiry.
+- Rate-limited `/login` (10/15min) and `/reset/*` (3/h), Redis-backed when `REDIS_URL` is set (multi-replica), in-memory otherwise.
+- TOTP MFA (`/auth/mfa/*`, backup codes SHA-256), sessions list/revoke, `mustChangePassword` seed enforcement.
+- Email verification enforced for checkout/invites/api-keys/uploads (`REQUIRE_VERIFIED_EMAIL`). Password reset tokens SHA-256 hashed, single-use, 1h expiry.
 - Helmet + CORS allowlist + TLS-only public traffic in prod (port `:3001` is restricted to private ranges via Traefik allowlist — never expose it publicly). Secrets never logged; OAuth codes are redacted from HTTP logs.
 
 ## Billing model
 
-- `Organization` owns the Stripe customer + `Subscription` (plan, status, seats, period end).
-- `POST /billing/checkout` → Stripe Checkout; `POST /billing/portal` → Customer Portal; `POST /billing/webhook` (verified + idempotent) → status sync + dunning + audit log.
+- `Organization` owns the Stripe customer + `Subscription` (plan, status, seats, period end, trial).
+- New orgs get a 14-day Starter trial (`TRIAL_DAYS`). `POST /billing/checkout` → Stripe Checkout; `POST /billing/portal` → Customer Portal; `GET /billing/invoices` → last 12 invoices; `POST /billing/webhook` (verified + idempotent) → status sync + dunning + audit log.
+- Plan gates return 402: `api-keys`/`uploads` need Starter+, `audit` needs Pro. Metered usage via `POST /usage/events`.
 - `GET /auth/oauth/:provider` → Google/GitHub login (auto-links verified emails, provisions a workspace on signup).
 - Graceful mock mode when `STRIPE_SECRET_KEY` is empty (local dev without Stripe).
 - Plans centralized in `server/src/adapters/stripe/stripe-billing-adapter.ts` (`PLANS`) and mirrored in `web/src/components/pricing-table/`.

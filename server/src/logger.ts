@@ -1,8 +1,9 @@
 import winston from "winston";
 import morgan from "morgan";
+import { env } from "@/env";
 
 export const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL ?? "info",
+  level: env.LOG_LEVEL ?? "info",
   format: winston.format.combine(
     winston.format.timestamp({ format: "YYYY-MM-DDTHH:mm:ss.SSSZ" }),
     winston.format.errors({ stack: true }),

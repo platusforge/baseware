@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/services/api";
 import { Badge, Button, DataTable, Input, PageHeader, SearchBar, toast, type Column, type SortDir } from "@/components";
 import { useOrganization } from "@/contexts/organization-context";
-import styles from "./members.module.css";
+import { useI18n } from "@/contexts/i18n-context";
+import styles from "./index.module.css";
 
 type Member = { userId: string; email: string; role: string };
 
@@ -14,13 +15,21 @@ const ROLE_VARIANT: Record<string, "primary" | "info" | "default"> = {
 
 export default function MembersPage() {
   const { current } = useOrganization();
+  const { t } = useI18n();
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: string; dir: SortDir } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (current) api.get<Member[]>(`/organizations/${current.id}/members`, current.id).then(setMembers).catch(() => []);
+    if (!current) return;
+    setLoading(true);
+    api
+      .get<Member[]>(`/organizations/${current.id}/members`, current.id)
+      .then(setMembers)
+      .catch(() => setMembers([]))
+      .finally(() => setLoading(false));
   }, [current]);
 
   async function invite() {
@@ -28,21 +37,28 @@ export default function MembersPage() {
     try {
       await api.post(`/organizations/${current.id}/invitations`, { email: email.trim(), role: "member" }, current.id);
       setEmail("");
-      toast.success("Invitation sent");
+      toast.success(t("invitationSent"));
     } catch {
-      toast.error("Could not send the invitation");
+      toast.error(t("inviteFailed"));
     }
   }
 
-  const columns: Column<Member>[] = useMemo(() => [
-    { key: "email", label: "Email", sortable: true },
-    {
-      key: "role",
-      label: "Role",
-      sortable: true,
-      render: (m) => <Badge variant={ROLE_VARIANT[m.role] ?? "default"} dot>{m.role}</Badge>,
-    },
-  ], []);
+  const columns: Column<Member>[] = useMemo(
+    () => [
+      { key: "email", label: t("email"), sortable: true },
+      {
+        key: "role",
+        label: "Role",
+        sortable: true,
+        render: (m) => (
+          <Badge variant={ROLE_VARIANT[m.role] ?? "default"} dot>
+            {m.role}
+          </Badge>
+        ),
+      },
+    ],
+    [t],
+  );
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -63,16 +79,19 @@ export default function MembersPage() {
 
   return (
     <div>
-      <PageHeader title="Members" subtitle={current ? `${members.length} people in ${current.name}` : undefined} />
+      <PageHeader title={t("members")} subtitle={current ? `${members.length} ${t("membersSubtitle")} ${current.name}` : undefined} />
       <form
         className={styles.invite}
-        onSubmit={(e) => { e.preventDefault(); invite(); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          invite();
+        }}
       >
-        <Input label="Invite by email" placeholder="teammate@company.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <Button type="submit">Invite</Button>
+        <Input label={t("inviteByEmail")} placeholder="teammate@company.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Button type="submit">{t("inviteByEmail")}</Button>
       </form>
       <div className={styles.toolbar}>
-        <SearchBar value={query} onChange={setQuery} placeholder="Search members..." debounceMs={200} />
+        <SearchBar value={query} onChange={setQuery} placeholder={t("searchMembers")} debounceMs={200} />
       </div>
       <DataTable
         columns={columns}
@@ -80,9 +99,10 @@ export default function MembersPage() {
         keyOf={(m) => m.userId}
         sort={sort}
         onSort={handleSort}
+        loading={loading}
         caption="Organization members"
-        emptyTitle="No members found"
-        emptyHint={query ? "Try a different search." : "Invite your first teammate above."}
+        emptyTitle={t("noMembers")}
+        emptyHint={query ? "Try a different search." : t("inviteHint")}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { logger } from "@/logger";
-import { IApiKeyRepository, IAuditRepository, IMembershipRepository } from "@/types/repositories/saas-repositories";
+import { IApiKeyRepository, IAuditRepository, IMembershipRepository, IOrganizationRepository } from "@/types/repositories/saas-repositories";
+import { planAllows } from "@/lib/plans";
 import { randomToken, sha256 } from "@/lib/crypto";
 
 const createKeySchema = z.object({
@@ -15,6 +16,7 @@ export class CreateApiKeyService {
     private readonly apiKeyRepository: IApiKeyRepository,
     private readonly auditRepository: IAuditRepository,
     private readonly membershipRepository: IMembershipRepository,
+    private readonly organizationRepository?: IOrganizationRepository,
   ) {}
 
   async execute(userId: string, input: unknown) {
@@ -24,6 +26,12 @@ export class CreateApiKeyService {
       if (data.organizationId) {
         const role = await this.membershipRepository.findRole(userId, data.organizationId);
         if (!role || !["owner", "admin"].includes(role)) throw new Error("Forbidden");
+        if (this.organizationRepository) {
+          const org = await this.organizationRepository.findById(data.organizationId);
+          if (!planAllows((org as { plan?: string } | null)?.plan, "api-keys")) {
+            throw new Error("Plan does not include API keys. Upgrade to continue.");
+          }
+        }
       }
       const prefix = `sk_${randomToken(4)}`;
       const secret = randomToken(24);

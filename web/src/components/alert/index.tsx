@@ -13,13 +13,14 @@ type Props = {
   variant?: AlertVariant;
   title?: string;
   onDismiss?: () => void;
+  role?: "alert" | "status";
   children: React.ReactNode;
 };
 
-export function Alert({ variant = "info", title, onDismiss, children }: Props) {
-  const role = variant === "danger" || variant === "warning" ? "alert" : "status";
+export function Alert({ variant = "info", title, onDismiss, role, children }: Props) {
+  const computed = role ?? (variant === "danger" || variant === "warning" ? "alert" : "status");
   return (
-    <div role={role} className={[styles.alert, styles[variant]].filter(Boolean).join(" ")}>
+    <div role={computed} className={[styles.alert, styles[variant]].filter(Boolean).join(" ")}>
       <span className={styles.icon} aria-hidden="true">{ICONS[variant]}</span>
       <div className={styles.body}>
         {title && <p className={styles.title}>{title}</p>}

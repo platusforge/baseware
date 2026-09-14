@@ -54,16 +54,17 @@ Referência completa: [`docs/pt-BR/`](./docs/pt-BR/inicio-rapido.md) e [`docs/en
 
 - Access 15min + refresh rotativo 7 dias em cookies `HttpOnly + Secure + SameSite`. Nunca `localStorage`.
 - Erro genérico `Invalid credentials.` (sem enumeração), compare com dummy-hash, `active` + lockout, bcrypt custo 12.
-- Rate-limit em `/login` (10/15min) e `/reset/*` (3/h). Tokens de reset com hash SHA-256, uso único, 1h.
-- Helmet + CORS allowlist + TLS no tráfego público em prod (porta `:3001` restrita a redes privadas via allowlist do Traefik — nunca exponha publicamente). Nunca logar segredos; códigos OAuth são removidos dos logs HTTP.
+- Rate-limit em `/login` (10/15min) e `/reset/*` (3/h), com Redis quando `REDIS_URL` definido.
+- MFA TOTP (`/auth/mfa/*`, backup codes), sessões, `mustChangePassword` do seed. E-mail verificado exigido para checkout/convites/api-keys/uploads.
+- Tokens de reset com hash SHA-256, uso único, 1h. Helmet + CORS allowlist + TLS em prod (`:3001` restrita via allowlist — nunca exponha). Nunca logar segredos.
 
 ## Modelo de cobrança
 
-- `Organization` é dona do customer Stripe + `Subscription` (plano, status, seats, fim do período).
-- `POST /billing/checkout` → Stripe Checkout; `POST /billing/portal` → Portal; `POST /billing/webhook` (verificado + idempotente) → sync + dunning + audit.
-- `GET /auth/oauth/:provider` → login Google/GitHub (vincula emails verificados, provisiona workspace no signup).
-- Modo mock gracioso sem `STRIPE_SECRET_KEY` (dev local sem Stripe).
-- Planos centralizados em `server/src/adapters/stripe/stripe-billing-adapter.ts` (`PLANS`) e espelhados em `web/src/components/pricing-table/`.
+- `Organization` é dona do customer Stripe + `Subscription` (plano, status, seats, período, trial de 14 dias).
+- `POST /billing/checkout` → Checkout; `POST /billing/portal` → Portal; `GET /billing/invoices` → faturas; webhook verificado + idempotente.
+- Gates retornam 402: `api-keys`/`uploads` exigem Starter+, `audit` exige Pro. Uso medido via `POST /usage/events`.
+- `GET /auth/oauth/:provider` → login Google/GitHub. Modo mock sem `STRIPE_SECRET_KEY`.
+- Planos em `stripe-billing-adapter.ts` (`PLANS`) espelhados no `pricing-table`.
 
 ## Estrutura
 

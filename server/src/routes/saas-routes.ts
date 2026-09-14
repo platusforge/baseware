@@ -2,6 +2,8 @@ import { Router } from "express";
 import { OrganizationController, BillingController, ApiKeyController, MiscController } from "@/controllers/saas-controller";
 import { requireOrgRole } from "@/common/org-middleware";
 import { requireAdmin, requirePage } from "@/common/require-page";
+import { requirePlan } from "@/common/require-plan";
+import { requireVerifiedEmail } from "@/common/require-verified-email";
 
 const router = Router();
 const org = new OrganizationController();
@@ -14,22 +16,24 @@ router.get("/organizations", org.list.bind(org));
 router.post("/invitations/accept", org.accept.bind(org));
 router.delete("/organizations/:orgId", requireOrgRole("owner"), org.remove.bind(org));
 router.get("/organizations/:orgId/members", requireOrgRole(), org.members.bind(org));
-router.post("/organizations/:orgId/invitations", requireOrgRole("owner", "admin"), org.invite.bind(org));
+router.post("/organizations/:orgId/invitations", requireOrgRole("owner", "admin"), requireVerifiedEmail(), org.invite.bind(org));
 router.post("/organizations/:orgId/invitations/:id/resend", requireOrgRole("owner", "admin"), org.resendInvite.bind(org));
 router.delete("/organizations/:orgId/invitations/:id", requireOrgRole("owner", "admin"), org.revokeInvite.bind(org));
 
-router.post("/billing/checkout", requireOrgRole("owner", "admin"), billing.checkout.bind(billing));
+router.post("/billing/checkout", requireOrgRole("owner", "admin"), requireVerifiedEmail(), billing.checkout.bind(billing));
 router.post("/billing/portal", requireOrgRole("owner", "admin"), billing.portal.bind(billing));
 router.get("/billing/status", requireOrgRole(), billing.status.bind(billing));
+router.get("/billing/invoices", requireOrgRole("owner", "admin"), billing.invoices.bind(billing));
 
-router.post("/api-keys", keys.create.bind(keys));
+router.post("/api-keys", requireVerifiedEmail(), keys.create.bind(keys));
 router.get("/api-keys", keys.list.bind(keys));
 router.delete("/api-keys/:id", keys.revoke.bind(keys));
 
 router.get("/notifications", misc.notifications.bind(misc));
 router.post("/notifications/:id/read", misc.readNotification.bind(misc));
-router.get("/organizations/:orgId/audit", requireOrgRole("owner", "admin"), misc.audit.bind(misc));
-router.post("/uploads/url", misc.uploadUrl.bind(misc));
+router.get("/organizations/:orgId/audit", requireOrgRole("owner", "admin"), requirePlan("audit"), misc.audit.bind(misc));
+router.post("/uploads/url", requireOrgRole(), requireVerifiedEmail(), requirePlan("uploads"), misc.uploadUrl.bind(misc));
+router.post("/usage/events", requireOrgRole(), misc.trackUsage.bind(misc));
 
 // Admin — RBAC page guard + admin flag
 router.get("/admin/stats", requirePage("admin"), requireAdmin, misc.adminStats.bind(misc));

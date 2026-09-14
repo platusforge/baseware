@@ -1,9 +1,15 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { Spinner } from "@/components";
 
 export function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { signed, loading } = useAuth();
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return (
+      <div role="status" aria-live="polite" style={{ padding: 24 }}>
+        <Spinner label="Loading..." />
+      </div>
+    );
   if (!signed) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

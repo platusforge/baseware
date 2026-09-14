@@ -1,0 +1,30 @@
+.invite {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.invite button {
+  width: 100%;
+  min-height: var(--touch-target);
+}
+
+.toolbar {
+  margin-bottom: 12px;
+}
+
+@media (min-width: 640px) {
+  .invite {
+    grid-template-columns: 1fr auto;
+  }
+
+  .invite button {
+    width: auto;
+  }
+
+  .toolbar {
+    max-width: 360px;
+  }
+}

@@ -1,7 +1,7 @@
 import { prisma } from "@/prisma";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/logger";
-import { IApiKeyRepository, IAuditRepository, IInvitationRepository, IMembershipRepository, INotificationRepository, IOAuthAccountRepository, IOrganizationRepository, IPasswordResetRepository, IRefreshTokenRepository, ISubscriptionRepository, IWebhookEventRepository } from "@/types/repositories/saas-repositories";
+import { IApiKeyRepository, IAuditRepository, IInvitationRepository, IMembershipRepository, INotificationRepository, IOAuthAccountRepository, IOrganizationRepository, IPasswordResetRepository, IRefreshTokenRepository, ISubscriptionRepository, IUsageEventRepository, IWebhookEventRepository } from "@/types/repositories/saas-repositories";
 import { IOrganization, MembershipRole } from "@/types/entities/organization";
 
 export class PrismaOrganizationRepository implements IOrganizationRepository {
@@ -35,7 +35,7 @@ export class PrismaOrganizationRepository implements IOrganizationRepository {
   async listForUser(userId: string) {
     try {
       const rows = await prisma.membership.findMany({
-        where: { userId },
+        where: { userId, organization: { active: true } },
         include: { organization: true },
         orderBy: { createdAt: "asc" },
       });
@@ -49,7 +49,7 @@ export class PrismaOrganizationRepository implements IOrganizationRepository {
     await prisma.organization.update({ where: { id }, data: data as never });
   }
   async remove(id: string) {
-    await prisma.organization.delete({ where: { id } });
+    await prisma.organization.update({ where: { id }, data: { active: false } });
   }
 }
 
@@ -228,6 +228,40 @@ export class PrismaRefreshTokenRepository implements IRefreshTokenRepository {
   }
   async revokeAllForUser(userId: string) {
     await prisma.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+  }
+  async listForUser(userId: string) {
+    try {
+      return await prisma.refreshToken.findMany({
+        where: { userId },
+        select: { id: true, family: true, createdAt: true, expiresAt: true, revokedAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      });
+    } catch (err) {
+      logger.error(`PrismaRefreshTokenRepository.listForUser error: ${err instanceof Error ? err.message : err}`);
+      return [];
+    }
+  }
+  async revokeOne(id: string, userId: string) {
+    await prisma.refreshToken.updateMany({ where: { id, userId, revokedAt: null }, data: { revokedAt: new Date() } });
+  }
+}
+
+export class PrismaUsageEventRepository implements IUsageEventRepository {
+  async track(data: { organizationId: string; metric: string; quantity: number }) {
+    await prisma.usageEvent.create({ data });
+  }
+  async sumSince(organizationId: string, metric: string, since: Date) {
+    try {
+      const agg = await prisma.usageEvent.aggregate({
+        where: { organizationId, metric, createdAt: { gte: since } },
+        _sum: { quantity: true },
+      });
+      return agg._sum.quantity ?? 0;
+    } catch (err) {
+      logger.error(`PrismaUsageEventRepository.sumSince error: ${err instanceof Error ? err.message : err}`);
+      return 0;
+    }
   }
 }
 

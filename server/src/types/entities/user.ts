@@ -6,6 +6,8 @@ export type IUser = {
   emailVerifiedAt: Date | null;
   active: boolean;
   type: string;
+  mfaEnabled: boolean;
+  mustChangePassword: boolean;
   createdAt: Date;
   updatedAt: Date;
 };

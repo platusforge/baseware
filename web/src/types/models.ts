@@ -4,6 +4,8 @@ export type IUser = {
   name: string | null;
   type: string;
   emailVerifiedAt: string | null;
+  mfaEnabled?: boolean;
+  mustChangePassword?: boolean;
   permissions?: IUserPermission | null;
 };
 
@@ -12,6 +14,7 @@ export type IOrganization = {
   name: string;
   slug: string;
   plan: string;
+  trialEndsAt?: string | null;
   role?: string;
 };
 

@@ -1,0 +1,32 @@
+.card {
+  margin-bottom: 16px;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .form {
+    max-width: 360px;
+  }
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row button,
+.row input {
+  min-height: var(--touch-target);
+}
+
+@media (min-width: 640px) {
+  .row {
+    flex-direction: row;
+    align-items: center;
+  }
+}

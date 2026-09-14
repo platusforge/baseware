@@ -6,7 +6,7 @@ type AuthContextData = {
   user: IUser | null;
   signed: boolean;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, mfaCode?: string) => Promise<{ mustChangePassword?: boolean; emailVerified?: boolean }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 };
@@ -38,9 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("unauthorized", onUnauthorized);
   }, [refreshUser]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    await api.post("/auth/login", { email, password });
+  const login = useCallback(async (email: string, password: string, mfaCode?: string) => {
+    const result = await api.post<{ mustChangePassword?: boolean; emailVerified?: boolean }>("/auth/login", { email, password, mfaCode });
     await refreshUser();
+    return result;
   }, [refreshUser]);
 
   const logout = useCallback(async () => {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { prisma } from "@/prisma";
 import { sha256 } from "@/lib/crypto";
+import { apiKeyRepository, userRepository, organizationRepository, membershipRepository } from "@/repositories";
 
 declare global {
   namespace Express {
@@ -17,11 +17,11 @@ export function requireOrgRole(...roles: string[]) {
       const userId = req.user?.userId;
       const organizationId = (req.params.orgId as string) ?? (req.headers["x-org-id"] as string);
       if (!userId || !organizationId) return res.status(403).json({ message: "Forbidden" });
-      const membership = await prisma.membership.findUnique({
-        where: { userId_organizationId: { userId, organizationId } },
-      });
+      const org = await organizationRepository.findById(organizationId);
+      if (!org || (org as { active?: boolean }).active === false) return res.status(403).json({ message: "Forbidden" });
+      const membership = await membershipRepository.findRole(userId, organizationId);
       if (!membership) return res.status(403).json({ message: "Forbidden" });
-      if (roles.length > 0 && !roles.includes(membership.role)) {
+      if (roles.length > 0 && !roles.includes(membership)) {
         return res.status(403).json({ message: "Forbidden" });
       }
       req.organizationId = organizationId;
@@ -38,15 +38,19 @@ export async function apiKeyMiddleware(req: Request, res: Response, next: NextFu
     const raw = req.headers["x-api-key"] as string | undefined;
     if (!raw) return res.status(401).json({ message: "Unauthorized" });
     const keyHash = sha256(raw);
-    const key = await prisma.apiKey.findUnique({ where: { keyHash } });
+    const key = await apiKeyRepository.findByHash(keyHash);
     if (!key || key.revokedAt) return res.status(401).json({ message: "Unauthorized" });
-    if (key.expiresAt && key.expiresAt < new Date()) return res.status(401).json({ message: "Unauthorized" });
-    const user = await prisma.user.findUnique({ where: { id: key.userId }, select: { active: true } });
-    if (!user || user.active === false) return res.status(401).json({ message: "Unauthorized" });
+    if (key.expiresAt && new Date(key.expiresAt) < new Date()) return res.status(401).json({ message: "Unauthorized" });
+    const sessionUser = await userRepository.findSessionUser(key.userId);
+    if (!sessionUser || sessionUser.active === false) return res.status(401).json({ message: "Unauthorized" });
+    if (key.organizationId) {
+      const org = await organizationRepository.findById(key.organizationId);
+      if (!org || (org as { active?: boolean }).active === false) return res.status(401).json({ message: "Unauthorized" });
+    }
     req.user = { userId: key.userId, jti: `apikey:${key.id}` };
-    req.apiScopes = key.scopes;
+    req.apiScopes = key.scopes ?? [];
     if (key.organizationId) req.organizationId = key.organizationId;
-    await prisma.apiKey.update({ where: { id: key.id }, data: { lastUsedAt: new Date() } });
+    await apiKeyRepository.touch(key.id);
     return next();
   } catch {
     return res.status(401).json({ message: "Unauthorized" });

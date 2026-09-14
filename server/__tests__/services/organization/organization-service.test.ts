@@ -9,18 +9,22 @@ jest.mock("@/env", () => ({
     FRONTEND_URL: "http://localhost:5173",
     STRIPE_PRICE_STARTER: "price_starter",
     STRIPE_PRICE_PRO: "price_pro",
+    TRIAL_DAYS: 14,
   },
 }));
 
 describe("CreateOrganizationService", () => {
   it("should create org and assign owner", async () => {
-    const mockOrgs = { create: jest.fn().mockResolvedValue({ id: "o1", slug: "acme-x" }) } as never;
+    const mockOrgs = {
+      create: jest.fn().mockResolvedValue({ id: "o1", slug: "acme-x" }),
+      update: jest.fn().mockResolvedValue(undefined),
+    } as never;
     const mockMembers = { add: jest.fn().mockResolvedValue(undefined) } as never;
     const mockAudit = { append: jest.fn().mockResolvedValue(undefined) } as never;
     const service = new CreateOrganizationService(mockOrgs, mockMembers, mockAudit);
     const result = await service.execute("u1", { name: "Acme" });
     expect((mockMembers as unknown as { add: jest.Mock }).add).toHaveBeenCalledWith({ userId: "u1", organizationId: "o1", role: "owner" });
-    expect(result).toEqual({ id: "o1", slug: "acme-x" });
+    expect(result).toMatchObject({ id: "o1", slug: "acme-x" });
   });
 });
 

@@ -5,9 +5,20 @@ import * as Sentry from "@sentry/react";
 import { App } from "./app";
 import "./styles/global.css";
 
+export function consentGranted(): boolean {
+  try {
+    return localStorage.getItem("analytics-consent") === "granted";
+  } catch {
+    return false;
+  }
+}
+
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
-if (posthogKey) {
-  posthog.init(posthogKey, { api_host: "https://us.i.posthog.com" });
+if (posthogKey && consentGranted()) {
+  posthog.init(posthogKey, { api_host: "https://us.i.posthog.com", persistence: "localStorage" });
+} else if (posthogKey && import.meta.env.PROD) {
+  // LGPD/GDPR: analytics stays off until CookieConsent grants it.
+  console.info("analytics: disabled until consent (see Privacy).");
 }
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;

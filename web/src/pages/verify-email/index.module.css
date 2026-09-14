@@ -1,0 +1,13 @@
+.wrap {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 60px 20px 0;
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .wrap {
+    padding-top: 80px;
+  }
+}

@@ -18,8 +18,8 @@
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
-.sm { min-height: 32px; padding: 0 12px; font-size: var(--text-xs); }
-.md { min-height: 40px; padding: 0 16px; }
+.sm { min-height: var(--touch-target); padding: 0 12px; font-size: var(--text-xs); }
+.md { min-height: var(--touch-target); padding: 0 16px; }
 .lg { min-height: var(--touch-target); padding: 0 20px; font-size: var(--text-md); }
 
 .primary { background: var(--color-primary); color: var(--color-on-primary); }
@@ -35,7 +35,7 @@
 .ghost { background: transparent; color: var(--color-text); }
 .ghost:hover:not(:disabled) { background: var(--color-surface); }
 
-.danger { background: var(--color-danger); color: #fff; }
+.danger { background: var(--color-danger); color: var(--color-on-primary); }
 .danger:hover:not(:disabled) { background: var(--color-danger-hover); }
 
 .full { width: 100%; }
@@ -52,6 +52,7 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-@media (max-width: 639px) {
-  .md { min-height: var(--touch-target); }
+@media (min-width: 640px) and (pointer: fine) {
+  .sm { min-height: 32px; }
+  .md { min-height: 40px; }
 }

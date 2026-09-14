@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/services/api";
 import { Badge, DataTable, PageHeader, SearchBar } from "@/components";
 import { useOrganization } from "@/contexts/organization-context";
+import { useI18n } from "@/contexts/i18n-context";
+import styles from "./index.module.css";
 
 type AuditRow = { action: string; createdAt: string };
 
@@ -14,11 +16,19 @@ function variantFor(action: string): "danger" | "warning" | "success" | "default
 
 export default function AuditPage() {
   const { current } = useOrganization();
+  const { t } = useI18n();
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (current) api.get<AuditRow[]>(`/organizations/${current.id}/audit`, current.id).then(setRows).catch(() => []);
+    if (!current) return;
+    setLoading(true);
+    api
+      .get<AuditRow[]>(`/organizations/${current.id}/audit`, current.id)
+      .then(setRows)
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
   }, [current]);
 
   const filtered = useMemo(() => {
@@ -28,9 +38,9 @@ export default function AuditPage() {
 
   return (
     <div>
-      <PageHeader title="Audit log" subtitle={current ? `Activity in ${current.name}` : undefined} />
-      <div style={{ marginBottom: 12, maxWidth: 360 }}>
-        <SearchBar value={query} onChange={setQuery} placeholder="Filter actions..." debounceMs={200} />
+      <PageHeader title={t("auditLog")} subtitle={current ? `Activity in ${current.name}` : undefined} />
+      <div className={styles.toolbar}>
+        <SearchBar value={query} onChange={setQuery} placeholder={t("filterActions")} debounceMs={200} />
       </div>
       <DataTable
         columns={[
@@ -43,9 +53,10 @@ export default function AuditPage() {
         ]}
         data={filtered}
         keyOf={(_, i) => `${i}`}
-        caption="Audit log"
-        emptyTitle="No activity yet"
-        emptyHint={query ? "Try a different filter." : "Actions in this organization will show up here."}
+        loading={loading}
+        caption={t("auditLog")}
+        emptyTitle={t("noActivity")}
+        emptyHint={query ? "Try a different filter." : t("auditHint")}
       />
     </div>
   );

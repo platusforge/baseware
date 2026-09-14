@@ -1,6 +1,8 @@
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
 
 name: ci
 jobs:
@@ -28,13 +30,23 @@ jobs:
       - name: Unit tests
         run: npm --workspace server test
         env:
+          NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           JWT_SECRET: ci-test-secret-min-32-chars-long-1234
 
       - name: Audit production dependencies
         run: node scripts/audit-gate.mjs
 
+      - name: Trivy container scan (server)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: verify
     steps:
@@ -63,11 +75,19 @@ jobs:
 
             # Write .env from GitHub secrets (single-quoted to prevent shell expansion)
             {
+              printf 'NODE_ENV=%s\n'            'production'
               printf 'DB_USER=%s\n'              '${{ secrets.DB_USER }}'
               printf 'DB_PASSWORD=%s\n'          '${{ secrets.DB_PASSWORD }}'
               printf 'DB_NAME=%s\n'              '${{ secrets.DB_NAME }}'
+              printf 'SERVER_PORT=%s\n'          '${{ secrets.SERVER_PORT }}'
               printf 'DATABASE_URL=%s\n'         '${{ secrets.DATABASE_URL }}'
               printf 'JWT_SECRET=%s\n'           '${{ secrets.JWT_SECRET }}'
+              printf 'JWT_ISSUER=%s\n'           '${{ secrets.JWT_ISSUER }}'
+              printf 'JWT_AUDIENCE=%s\n'         '${{ secrets.JWT_AUDIENCE }}'
+              printf 'ACCESS_TOKEN_TTL=%s\n'     '${{ secrets.ACCESS_TOKEN_TTL }}'
+              printf 'REFRESH_TOKEN_TTL=%s\n'    '${{ secrets.REFRESH_TOKEN_TTL }}'
+              printf 'COOKIE_DOMAIN=%s\n'        '${{ secrets.COOKIE_DOMAIN }}'
+              printf 'BCRYPT_COST=%s\n'          '${{ secrets.BCRYPT_COST }}'
               printf 'STRIPE_SECRET_KEY=%s\n'    '${{ secrets.STRIPE_SECRET_KEY }}'
               printf 'STRIPE_WEBHOOK_SECRET=%s\n' '${{ secrets.STRIPE_WEBHOOK_SECRET }}'
               printf 'STRIPE_PRICE_STARTER=%s\n'  '${{ secrets.STRIPE_PRICE_STARTER }}'
@@ -78,10 +98,24 @@ jobs:
               printf 'GITHUB_CLIENT_SECRET=%s\n'  '${{ secrets.GITHUB_CLIENT_SECRET }}'
               printf 'API_PUBLIC_URL=%s\n'        '${{ secrets.API_PUBLIC_URL }}'
               printf 'FRONTEND_URL=%s\n'          '${{ secrets.FRONTEND_URL }}'
+              printf 'VITE_API_URL=%s\n'          '/api'
+              printf 'EMAIL_FROM=%s\n'           '${{ secrets.EMAIL_FROM }}'
               printf 'RESEND_API_KEY=%s\n'       '${{ secrets.RESEND_API_KEY }}'
               printf 'SENTRY_DSN=%s\n'           '${{ secrets.SENTRY_DSN }}'
               printf 'POSTHOG_KEY=%s\n'          '${{ secrets.POSTHOG_KEY }}'
               printf 'ADMIN_EMAIL=%s\n'          '${{ secrets.ADMIN_EMAIL }}'
+              printf 'APP_HOST=%s\n'             '${{ secrets.APP_HOST }}'
+              printf 'S3_ENDPOINT=%s\n'          '${{ secrets.S3_ENDPOINT }}'
+              printf 'S3_BUCKET=%s\n'            '${{ secrets.S3_BUCKET }}'
+              printf 'S3_ACCESS_KEY=%s\n'        '${{ secrets.S3_ACCESS_KEY }}'
+              printf 'S3_SECRET_KEY=%s\n'        '${{ secrets.S3_SECRET_KEY }}'
+              printf 'S3_REGION=%s\n'            '${{ secrets.S3_REGION }}'
+              printf 'S3_PUBLIC_BASE_URL=%s\n'   '${{ secrets.S3_PUBLIC_BASE_URL }}'
+              printf 'UPLOAD_MAX_MB=%s\n'        '${{ secrets.UPLOAD_MAX_MB }}'
+              printf 'REDIS_URL=%s\n'            '${{ secrets.REDIS_URL }}'
+              printf 'REQUIRE_VERIFIED_EMAIL=%s\n' '${{ secrets.REQUIRE_VERIFIED_EMAIL }}'
+              printf 'TRIAL_DAYS=%s\n'           '${{ secrets.TRIAL_DAYS }}'
+              printf 'LOG_LEVEL=%s\n'            '${{ secrets.LOG_LEVEL }}'
             } > .env
 
             # Deploy

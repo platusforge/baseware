@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useI18n } from "@/contexts/i18n-context";
+import { api } from "@/services/api";
+import { Alert, Button, Input } from "@/components";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -14,11 +17,15 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useI18n();
   const nav = useNavigate();
   const [params] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [needMfa, setNeedMfa] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [providers, setProviders] = useState<Provider[]>([]);
 
   useEffect(() => {
@@ -27,25 +34,35 @@ export default function LoginPage() {
   }, [params]);
 
   useEffect(() => {
-    fetch(`${API_URL}/auth/oauth/providers`, { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((list: Provider[]) => setProviders(list.filter((p) => p.configured)))
-      .catch(() => []);
+    api
+      .get<Provider[]>("/auth/oauth/providers")
+      .then((list) => setProviders(list.filter((p) => p.configured)))
+      .catch(() => setProviders([]));
   }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
-      await login(email, password);
+      await login(email, password, needMfa ? mfaCode : undefined);
       nav("/dashboard");
-    } catch {
-      setError("Invalid credentials.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t("loginFailed");
+      if (msg.includes("MFA_REQUIRED")) {
+        setNeedMfa(true);
+        setError("Enter your 6-digit authenticator code (or backup code).");
+        return;
+      }
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <div className="container" style={{ maxWidth: 420, paddingTop: 60 }}>
-      <h1>Login</h1>
+      <h1>{t("login")}</h1>
       {providers.length > 0 && (
         <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
           {providers.map((p) => (
@@ -57,12 +74,37 @@ export default function LoginPage() {
         </div>
       )}
       <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
-        <input className="input" autoComplete="username" placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="input" autoComplete="current-password" type="password" placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button className="btn" type="submit">Login</button>
+        <Input label={t("email")} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input
+          label={t("password")}
+          autoComplete="current-password"
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {needMfa && (
+          <Input
+            label="6-digit MFA code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            required
+            value={mfaCode}
+            onChange={(e) => setMfaCode(e.target.value)}
+          />
+        )}
+        {error && (
+          <Alert variant="danger" role="alert">
+            {error}
+          </Alert>
+        )}
+        <Button type="submit" loading={loading}>
+          {t("login")}
+        </Button>
       </form>
-      <p><Link to="/register">Create account</Link> · <Link to="/reset-password">Forgot password?</Link></p>
+      <p>
+        <Link to="/register">{t("createAccount")}</Link> · <Link to="/reset-password">{t("forgotPassword")}</Link>
+      </p>
     </div>
   );
 }

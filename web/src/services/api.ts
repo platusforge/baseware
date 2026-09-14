@@ -58,6 +58,12 @@ export const api = {
   get: <T>(endpoint: string, orgId?: string) => request<T>(endpoint, { method: "GET", ...orgHeaders(orgId) }),
   post: <T>(endpoint: string, body?: unknown, orgId?: string) =>
     request<T>(endpoint, { method: "POST", body: JSON.stringify(body), ...orgHeaders(orgId) }),
-  put: <T>(endpoint: string, body?: unknown) => request<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
-  del: <T>(endpoint: string, body?: unknown) => request<T>(endpoint, { method: "DELETE", body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(endpoint: string, body?: unknown, orgId?: string) =>
+    request<T>(endpoint, { method: "PUT", body: JSON.stringify(body), ...orgHeaders(orgId) }),
+  del: <T>(endpoint: string, body?: unknown, orgId?: string) =>
+    request<T>(endpoint, {
+      method: "DELETE",
+      body: body ? JSON.stringify(body) : undefined,
+      ...orgHeaders(orgId),
+    }),
 };

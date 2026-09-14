@@ -1,21 +1,18 @@
 import { Request, Response, NextFunction } from "express";
-import { prisma } from "@/prisma";
+import { userRepository, permissionRepository } from "@/repositories";
 
-function toSet(v: unknown): string[] {
-  return Array.isArray(v) ? (v as string[]) : [];
-}
-
-/** RBAC: Role > direct UserPermission > configured:false blocks. */
+/** RBAC: admin type bypass > UserPermission allowlist > configured:false blocks.
+ * Missing permission row = legacy open mode (allow). Empty allowedPages = allow all.
+ */
 export function requirePage(...keys: string[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.userId;
       if (!userId) return res.status(401).json({ message: "Unauthorized" });
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { type: true } });
-      if (user?.type === "admin") return next();
-      const perm = await prisma.userPermission.findUnique({ where: { userId } });
-      if (!perm || perm.configured === false) return res.status(403).json({ message: "Forbidden" });
-      const allowed = toSet(perm.allowedPages);
+      const resolved = await permissionRepository.resolve(userId);
+      if (resolved.isAdmin) return next();
+      if (resolved.configured === false) return res.status(403).json({ message: "Forbidden" });
+      const allowed = resolved.allowedPages ?? [];
       if (allowed.length === 0) return next();
       const ok = keys.some((k) => allowed.includes(k));
       if (!ok) return res.status(403).json({ message: "Forbidden" });
@@ -27,8 +24,9 @@ export function requirePage(...keys: string[]) {
 }
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  prisma.user
-    .findUnique({ where: { id: req.user?.userId ?? "" }, select: { type: true } })
-    .then((u) => (u?.type === "admin" ? next() : res.status(403).json({ message: "Forbidden" })))
+  const userId = req.user?.userId ?? "";
+  userRepository
+    .findById(userId)
+    .then((u) => ((u as { type?: string } | null)?.type === "admin" ? next() : res.status(403).json({ message: "Forbidden" })))
     .catch(() => res.status(403).json({ message: "Forbidden" }));
 }

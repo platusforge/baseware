@@ -1,13 +1,30 @@
 import { Request, Response } from "express";
 import { CreateOrganizationService, InviteMemberService, AcceptInvitationService } from "@/services/organization-service/organization-service";
+import { ListOrganizationsService } from "@/services/organization-service/list-organizations-service";
+import { ListMembersService } from "@/services/organization-service/list-members-service";
 import { DeleteOrganizationService, ResendInvitationService, RevokeInvitationService } from "@/services/account-service/account-service";
 import { CreateCheckoutService, CreatePortalService } from "@/services/billing-service/billing-service";
+import { GetInvoicesService } from "@/services/billing-service/get-invoices-service";
 import { CreateApiKeyService, ListApiKeysService, RevokeApiKeyService } from "@/services/apikey-service/apikey-service";
 import { GetAdminStatsService, ListNotificationsService, GetSubscriptionStatusService } from "@/services/admin-service/admin-service";
-import { organizationRepository, membershipRepository, invitationRepository, auditRepository, userRepository, subscriptionRepository, apiKeyRepository, notificationRepository } from "@/repositories";
+import { ListUsersService } from "@/services/admin-service/list-users-service";
+import { ListAuditService } from "@/services/audit-service/list-audit-service";
+import { MarkNotificationReadService } from "@/services/notification-service/mark-notification-read-service";
+import { GetUploadUrlService } from "@/services/storage-service/get-upload-url-service";
+import { TrackUsageService } from "@/services/usage-service/track-usage-service";
+import { GetProfileService } from "@/services/account-service/get-profile-service";
+import { organizationRepository, membershipRepository, invitationRepository, auditRepository, userRepository, subscriptionRepository, apiKeyRepository, notificationRepository, usageEventRepository, permissionRepository } from "@/repositories";
 import { billingAdapter, mailAdapter, storageAdapter } from "@/adapters";
 
-const createOrgService = new CreateOrganizationService(organizationRepository, membershipRepository, auditRepository);
+const createOrgService = new CreateOrganizationService(organizationRepository, membershipRepository, auditRepository, subscriptionRepository);
+const listOrgsService = new ListOrganizationsService(organizationRepository);
+const listMembersService = new ListMembersService(membershipRepository);
+const listAuditService = new ListAuditService(auditRepository);
+const markReadService = new MarkNotificationReadService(notificationRepository);
+const listUsersService = new ListUsersService(userRepository);
+const getInvoicesService = new GetInvoicesService(organizationRepository, billingAdapter);
+const getProfileService = new GetProfileService(userRepository, permissionRepository);
+
 const inviteService = new InviteMemberService(invitationRepository, membershipRepository, mailAdapter, organizationRepository);
 const acceptService = new AcceptInvitationService(invitationRepository, membershipRepository, userRepository);
 const deleteOrgService = new DeleteOrganizationService(organizationRepository, membershipRepository, auditRepository);
@@ -16,11 +33,13 @@ const revokeInviteService = new RevokeInvitationService(invitationRepository, me
 const checkoutService = new CreateCheckoutService(billingAdapter, organizationRepository);
 const portalService = new CreatePortalService(billingAdapter, organizationRepository);
 const subStatusService = new GetSubscriptionStatusService(subscriptionRepository, organizationRepository);
-const createKeyService = new CreateApiKeyService(apiKeyRepository, auditRepository, membershipRepository);
+const createKeyService = new CreateApiKeyService(apiKeyRepository, auditRepository, membershipRepository, organizationRepository);
 const listKeysService = new ListApiKeysService(apiKeyRepository);
 const revokeKeyService = new RevokeApiKeyService(apiKeyRepository);
 const adminStatsService = new GetAdminStatsService(userRepository, auditRepository);
 const notificationsService = new ListNotificationsService(notificationRepository);
+const uploadUrlService = new GetUploadUrlService(storageAdapter, membershipRepository);
+const trackUsageService = new TrackUsageService(usageEventRepository, membershipRepository);
 
 export class OrganizationController {
   async create(req: Request, res: Response) {
@@ -37,7 +56,7 @@ export class OrganizationController {
     try {
       const userId = req.user?.userId;
       if (!userId) throw new Error("Missing credentials.");
-      const result = await organizationRepository.listForUser(userId);
+      const result = await listOrgsService.execute(userId);
       return res.json(result);
     } catch {
       return res.status(400).json({ message: "Error" });
@@ -47,7 +66,7 @@ export class OrganizationController {
     try {
       const orgId = req.params.orgId ?? req.organizationId;
       if (!orgId) throw new Error("Missing organization.");
-      const result = await membershipRepository.listMembers(orgId);
+      const result = await listMembersService.execute({ organizationId: orgId });
       return res.json(result);
     } catch {
       return res.status(400).json({ message: "Error" });
@@ -114,14 +133,14 @@ export class BillingController {
     try {
       const userId = req.user?.userId;
       if (!userId) throw new Error("Missing credentials.");
-      const user = (await userRepository.findById(userId)) as { email: string; name: string | null };
+      const profile = (await getProfileService.execute(userId)) as { email: string; name: string | null };
       // req.organizationId was verified by requireOrgRole; the body value must match it.
       const bodyOrg = (req.body as { organizationId?: string }).organizationId;
       if (bodyOrg && bodyOrg !== req.organizationId) throw new Error("Forbidden");
       const organizationId = req.organizationId ?? bodyOrg;
       if (!organizationId) throw new Error("Missing organization.");
       const result = await checkoutService.execute(
-        { userId, email: user.email, name: user.name ?? user.email },
+        { userId, email: profile.email, name: profile.name ?? profile.email },
         { ...(req.body as object), organizationId },
       );
       return res.json(result);
@@ -148,6 +167,15 @@ export class BillingController {
       if (!orgId) throw new Error("Missing organization.");
       const result = await subStatusService.execute(orgId);
       return res.json(result);
+    } catch {
+      return res.status(400).json({ message: "Error" });
+    }
+  }
+  async invoices(req: Request, res: Response) {
+    try {
+      const orgId = req.organizationId ?? (req.query.orgId as string);
+      if (!orgId) throw new Error("Missing organization.");
+      return res.json(await getInvoicesService.execute({ organizationId: orgId }));
     } catch {
       return res.status(400).json({ message: "Error" });
     }
@@ -210,8 +238,8 @@ export class MiscController {
     try {
       const userId = req.user?.userId;
       if (!userId) throw new Error("Missing credentials.");
-      await notificationRepository.markRead(req.params.id, userId);
-      return res.json({ read: true });
+      const result = await markReadService.execute(userId, { id: req.params.id });
+      return res.json(result);
     } catch {
       return res.status(400).json({ message: "Error" });
     }
@@ -220,30 +248,43 @@ export class MiscController {
     try {
       const orgId = req.params.orgId ?? req.organizationId;
       if (!orgId) throw new Error("Missing organization.");
-      return res.json(await auditRepository.list(orgId));
+      return res.json(await listAuditService.execute({ organizationId: orgId }));
     } catch {
       return res.status(400).json({ message: "Error" });
     }
   }
   async uploadUrl(req: Request, res: Response) {
     try {
-      const body = req.body as { key: string; contentType: string };
-      if (!body.key || typeof body.key !== "string" || body.key.length > 256) throw new Error("Invalid key.");
-      if (body.key.includes("..") || body.key.startsWith("/") || body.key.startsWith("\\")) {
-        throw new Error("Invalid key.");
-      }
-      return res.json(await storageAdapter.getUploadUrl({ key: body.key, contentType: body.contentType ?? "application/octet-stream" }));
-    } catch {
-      return res.status(400).json({ message: "Error" });
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      const organizationId = req.organizationId ?? (req.body as { organizationId?: string }).organizationId;
+      if (!organizationId) throw new Error("Missing organization.");
+      const body = req.body as { fileName?: string; key?: string; contentType?: string; contentLength?: number };
+      const result = await uploadUrlService.execute(userId, {
+        organizationId,
+        fileName: body.fileName ?? body.key ?? "upload",
+        contentType: body.contentType ?? "application/octet-stream",
+        contentLength: body.contentLength,
+      });
+      return res.json(result);
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+  async trackUsage(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      const organizationId = req.organizationId ?? (req.body as { organizationId?: string }).organizationId;
+      const result = await trackUsageService.execute(userId, { ...(req.body as object), organizationId });
+      return res.json(result);
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
     }
   }
   async users(req: Request, res: Response) {
     try {
-      const take = Math.min(Math.max(Number(req.query.take ?? 20) || 20, 1), 100);
-      const skip = Math.max(Number(req.query.skip ?? 0) || 0, 0);
-      const search = req.query.search as string | undefined;
-      const [items, total] = await Promise.all([userRepository.list({ take, skip, search }), userRepository.count({ search })]);
-      return res.json({ items, total });
+      return res.json(await listUsersService.execute({ take: req.query.take, skip: req.query.skip, search: req.query.search }));
     } catch {
       return res.status(400).json({ message: "Error" });
     }

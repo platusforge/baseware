@@ -14,6 +14,7 @@ export class CreateOrganizationService {
     private readonly organizationRepository: IOrganizationRepository,
     private readonly membershipRepository: IMembershipRepository,
     private readonly auditRepository: IAuditRepository,
+    private readonly subscriptionRepository?: { upsertByStripeId: (data: { stripeSubscriptionId: string; organizationId: string; status: string; plan: string; seats: number; currentPeriodEnd: Date | null }) => Promise<void> },
   ) {}
 
   async execute(userId: string, input: unknown) {
@@ -21,11 +22,25 @@ export class CreateOrganizationService {
       logger.info("CreateOrganizationService: starting...");
       const data = createOrgSchema.parse(input);
       const slug = `${slugify(data.name)}-${Date.now().toString(36)}`;
+      const trialEndsAt = new Date(Date.now() + env.TRIAL_DAYS * 24 * 3600 * 1000);
       const org = await this.organizationRepository.create({ name: data.name, slug });
+      await this.organizationRepository.update(org.id, { trialEndsAt } as never);
       await this.membershipRepository.add({ userId, organizationId: org.id, role: "owner" });
+      if (this.subscriptionRepository) {
+        await this.subscriptionRepository
+          .upsertByStripeId({
+            stripeSubscriptionId: `trial_${org.id}`,
+            organizationId: org.id,
+            status: "trialing",
+            plan: "starter",
+            seats: 5,
+            currentPeriodEnd: trialEndsAt,
+          })
+          .catch(() => undefined);
+      }
       await this.auditRepository.append({ userId, organizationId: org.id, action: "org.created", entity: "organization", entityId: org.id });
       logger.info("CreateOrganizationService: completed");
-      return org;
+      return { ...org, trialEndsAt };
     } catch (err) {
       logger.error(`CreateOrganizationService error: ${err instanceof Error ? err.message : err}`);
       throw err;
@@ -92,15 +107,16 @@ export class AcceptInvitationService {
   async execute(input: { token: string; userId: string }) {
     try {
       logger.info("AcceptInvitationService: starting...");
-      const record = await this.invitationRepository.findByTokenHash(sha256(input.token));
+      const parsed = z.object({ token: z.string().min(10).max(512), userId: z.string().min(1).max(128) }).parse(input);
+      const record = await this.invitationRepository.findByTokenHash(sha256(parsed.token));
       if (!record || record.acceptedAt || record.expiresAt < new Date()) throw new Error("Invalid or expired invitation.");
       // The invitation is bound to one email: only that account may claim it.
-      const user = (await this.userRepository.findById(input.userId)) as { email: string } | null;
+      const user = (await this.userRepository.findById(parsed.userId)) as { email: string } | null;
       if (!user || user.email.toLowerCase() !== record.email.toLowerCase()) {
         throw new Error("This invitation was sent to a different email address.");
       }
-      const existing = await this.membershipRepository.findRole(input.userId, record.organizationId);
-      if (!existing) await this.membershipRepository.add({ userId: input.userId, organizationId: record.organizationId, role: record.role });
+      const existing = await this.membershipRepository.findRole(parsed.userId, record.organizationId);
+      if (!existing) await this.membershipRepository.add({ userId: parsed.userId, organizationId: record.organizationId, role: record.role });
       await this.invitationRepository.markAccepted(record.id);
       logger.info("AcceptInvitationService: completed");
       return { organizationId: record.organizationId };

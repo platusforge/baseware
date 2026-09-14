@@ -46,10 +46,18 @@ export class GetSubscriptionStatusService {
   async execute(organizationId: string) {
     try {
       logger.info("GetSubscriptionStatusService: starting...");
-      const org = await this.organizationRepository.findById(organizationId);
+      const org = (await this.organizationRepository.findById(organizationId)) as {
+        plan?: string;
+        trialEndsAt?: Date | null;
+      } | null;
       const subscription = await this.subscriptionRepository.findByOrganization(organizationId);
       logger.info("GetSubscriptionStatusService: completed");
-      return { plan: subscription?.plan ?? (org as { plan?: string } | null)?.plan ?? "free", status: subscription?.status ?? "none", subscription };
+      return {
+        plan: subscription?.plan ?? org?.plan ?? "free",
+        status: subscription?.status ?? "none",
+        subscription,
+        trialEndsAt: org?.trialEndsAt ?? null,
+      };
     } catch (err) {
       logger.error(`GetSubscriptionStatusService error: ${err instanceof Error ? err.message : err}`);
       throw err;

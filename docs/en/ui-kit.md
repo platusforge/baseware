@@ -23,9 +23,11 @@ Zero-dependency component library in `web/src/components/` (React + CSS Modules 
 | Dropdown | `dropdown/` | `menu`/`menuitem` roles, ArrowUp/Down nav, Escape refocuses trigger |
 | Tabs | `tabs/` | Roving tabindex + Arrow/Home/End, horizontal scroll on mobile |
 | Card | `card/` | `Card` + Header/Title/Description/Content/Footer |
-| Alert | `alert/` | info/success/warning/danger, optional dismiss |
+| Alert | `alert/` | info/success/warning/danger, optional `role` override + dismiss |
 | EmptyState | `empty-state/` | Icon + title + description + action slot |
-| StatCard | `stat-card/` | Metric + trend delta (`invert` for cost-type metrics) |
+| StatCard | `stat-card/` | Metric + `loading` skeleton state + trend delta (`invert` for cost-type metrics) |
+| PricingTable | `pricing-table/` | Fetches `GET /billing/plans` (fallback local), trial copy, loading/error, 44px CTAs |
+| CookieConsent | `cookie-consent/` | LGPD dialog, `role="dialog"` + `aria-live`, CSS module + tokens |
 | Toast | `toast/` | `toast.success/error/info()` event bus + `<Toaster/>` (already in `app.tsx`) |
 | Tooltip | `tooltip/` | CSS-only, hover + keyboard focus; never for essential-only info |
 | PageHeader | `page-header/` | Title/subtitle/action; stacks full-width on mobile |

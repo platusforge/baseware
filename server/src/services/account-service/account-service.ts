@@ -36,6 +36,7 @@ export class ChangePasswordService {
       await this.userRepository.update(userId, {
         passwordHash: await this.passwordHasher.hash(data.newPassword),
         passwordChangedAt: new Date(),
+        mustChangePassword: false,
       } as never);
       await this.refreshTokenRepository.revokeAllForUser(userId);
       logger.info("ChangePasswordService: completed");
@@ -93,9 +94,10 @@ export class DeleteOrganizationService {
       if (role !== "owner") throw new Error("Forbidden");
       const org = await this.organizationRepository.findById(organizationId);
       if (!org) throw new Error("Organization not found.");
-      await this.auditRepository.append({ userId, action: "org.deleted", entity: "organization", entityId: organizationId });
-      // Memberships, invitations, subscriptions and api keys cascade.
+      if ((org as { active?: boolean }).active === false) throw new Error("Organization not found.");
+      // Soft-delete first so a failure never leaves a ghost audit row.
       await this.organizationRepository.remove(organizationId);
+      await this.auditRepository.append({ userId, action: "org.deleted", entity: "organization", entityId: organizationId });
       logger.info("DeleteOrganizationService: completed");
       return { message: "Organization deleted." };
     } catch (err) {

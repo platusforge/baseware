@@ -15,7 +15,7 @@
 
 .check svg { width: 14px; height: 14px; }
 
-.box:checked + .check { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.box:checked + .check { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
 .box:focus-visible + .check { box-shadow: var(--ring); }
 .box:disabled ~ .text { opacity: 0.6; }
 

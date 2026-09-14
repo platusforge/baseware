@@ -14,8 +14,8 @@
 .iconbtn:hover:not(:disabled) { background: var(--color-surface); color: var(--color-text); }
 .iconbtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.sm { width: 32px; height: 32px; }
-.md { width: 40px; height: 40px; }
+.sm { width: var(--touch-target); height: var(--touch-target); }
+.md { width: var(--touch-target); height: var(--touch-target); }
 .lg { width: var(--touch-target); height: var(--touch-target); }
 
 .ghost { background: transparent; }
@@ -25,3 +25,8 @@
 
 .iconbtn svg { width: 1.1em; height: 1.1em; }
 .md svg, .lg svg { width: 20px; height: 20px; }
+
+@media (min-width: 640px) and (pointer: fine) {
+  .sm { width: 32px; height: 32px; }
+  .md { width: 40px; height: 40px; }
+}

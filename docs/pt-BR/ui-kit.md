@@ -23,9 +23,11 @@ Biblioteca de componentes zero-dependência em `web/src/components/` (React + CS
 | Dropdown | `dropdown/` | Papéis `menu`/`menuitem`, setas navegam, Escape devolve o foco |
 | Tabs | `tabs/` | Roving tabindex + setas/Home/End, rolagem horizontal no mobile |
 | Card | `card/` | `Card` + Header/Title/Description/Content/Footer |
-| Alert | `alert/` | info/success/warning/danger, dismiss opcional |
+| Alert | `alert/` | info/success/warning/danger, `role` opcional + dismiss |
 | EmptyState | `empty-state/` | Ícone + título + descrição + ação |
-| StatCard | `stat-card/` | Métrica + delta de tendência (`invert` p/ métricas de custo) |
+| StatCard | `stat-card/` | Métrica + estado `loading` + delta (`invert` p/ custo) |
+| PricingTable | `pricing-table/` | Busca `GET /billing/plans` (fallback local), trial, loading/erro, CTAs 44px |
+| CookieConsent | `cookie-consent/` | Diálogo LGPD, `role="dialog"` + `aria-live`, CSS module + tokens |
 | Toast | `toast/` | `toast.success/error/info()` via eventos + `<Toaster/>` (já montado no `app.tsx`) |
 | Tooltip | `tooltip/` | Só CSS, hover + foco de teclado; nunca para informação essencial |
 | PageHeader | `page-header/` | Título/subtítulo/ação; empilha full-width no mobile |

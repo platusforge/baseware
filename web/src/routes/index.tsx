@@ -9,7 +9,11 @@ import DashboardLayout from "@/pages/dashboard/layout";
 import BlogPage from "@/pages/blog";
 import BlogPostPage from "@/pages/blog/post";
 import VerifyEmailPage from "@/pages/verify-email";
-import DashboardIndex from "@/pages/dashboard/index";
+import InvitePage from "@/pages/invite";
+import TermsPage from "@/pages/legal/terms";
+import PrivacyPage from "@/pages/legal/privacy";
+import DpaPage from "@/pages/legal/dpa";
+import DashboardIndex from "@/pages/dashboard/overview";
 import MembersPage from "@/pages/dashboard/members";
 import BillingPage from "@/pages/dashboard/billing";
 import ApiKeysPage from "@/pages/dashboard/api-keys";
@@ -18,13 +22,13 @@ import SettingsPage from "@/pages/dashboard/settings";
 import AdminPage from "@/pages/dashboard/admin";
 
 export const NAV_ITEMS = [
-  { key: "dashboard", label: "Overview", path: "/dashboard" },
-  { key: "members", label: "Members", path: "/dashboard/members" },
-  { key: "billing", label: "Billing", path: "/dashboard/billing" },
-  { key: "api-keys", label: "API Keys", path: "/dashboard/api-keys" },
-  { key: "audit", label: "Audit", path: "/dashboard/audit" },
-  { key: "settings", label: "Settings", path: "/dashboard/settings" },
-  { key: "admin", label: "Admin", path: "/dashboard/admin" },
+  { key: "dashboard", labelKey: "overview", path: "/dashboard" },
+  { key: "members", labelKey: "members", path: "/dashboard/members" },
+  { key: "billing", labelKey: "billing", path: "/dashboard/billing" },
+  { key: "api-keys", labelKey: "apiKeys", path: "/dashboard/api-keys" },
+  { key: "audit", labelKey: "audit", path: "/dashboard/audit" },
+  { key: "settings", labelKey: "settings", path: "/dashboard/settings" },
+  { key: "admin", labelKey: "admin", path: "/dashboard/admin" },
 ];
 
 export function AppRoutes() {
@@ -35,6 +39,10 @@ export function AppRoutes() {
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/invite" element={<InvitePage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/dpa" element={<DpaPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />

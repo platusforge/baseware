@@ -9,6 +9,8 @@ import { routes } from "@/routes";
 
 if (env.SENTRY_DSN) {
   Sentry.init({ dsn: env.SENTRY_DSN, tracesSampleRate: 0.1 });
+} else if (env.NODE_ENV === "production") {
+  logger.warn("observability: SENTRY_DSN empty in production — errors only in stdout.");
 }
 
 export function createApp() {

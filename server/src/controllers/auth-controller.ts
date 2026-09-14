@@ -8,10 +8,14 @@ import { StartOAuthService } from "@/services/auth-service/start-oauth-service";
 import { HandleOAuthCallbackService } from "@/services/auth-service/handle-oauth-callback-service";
 import { RequestEmailVerificationService, ConfirmEmailVerificationService } from "@/services/auth-service/email-verification-service";
 import { ChangePasswordService, DeleteAccountService } from "@/services/account-service/account-service";
-import { GetPermissionsService } from "@/services/permission-service/get-permissions-service";
-import { userRepository, passwordHasher, refreshTokenRepository, passwordResetRepository, oauthAccountRepository, organizationRepository, membershipRepository, auditRepository, permissionRepository } from "@/repositories";
+import { GetProfileService } from "@/services/account-service/get-profile-service";
+import { ListSessionsService, RevokeSessionService } from "@/services/account-service/list-sessions-service";
+import { LogoutService } from "@/services/auth-service/logout-service";
+import { SetupMfaService, ConfirmMfaService, DisableMfaService } from "@/services/mfa-service/mfa-service";
+import { ExportUserDataService } from "@/services/privacy-service/export-user-data-service";
+import { userRepository, passwordHasher, refreshTokenRepository, passwordResetRepository, oauthAccountRepository, organizationRepository, membershipRepository, auditRepository, permissionRepository, apiKeyRepository, notificationRepository } from "@/repositories";
 import { mailAdapter, getOAuthAdapters, listOAuthProviders } from "@/adapters";
-import { verifyToken, accessCookieMaxAge, refreshCookieMaxAge } from "@/lib/jwt";
+import { accessCookieMaxAge, refreshCookieMaxAge } from "@/lib/jwt";
 
 const registerService = new RegisterService(userRepository, passwordHasher, mailAdapter);
 const loginService = new LoginService(userRepository, passwordHasher, refreshTokenRepository);
@@ -22,7 +26,14 @@ const requestVerifyService = new RequestEmailVerificationService(userRepository,
 const confirmVerifyService = new ConfirmEmailVerificationService(userRepository);
 const changePasswordService = new ChangePasswordService(userRepository, passwordHasher, refreshTokenRepository);
 const deleteAccountService = new DeleteAccountService(userRepository, passwordHasher);
-const getPermissionsService = new GetPermissionsService(permissionRepository);
+const getProfileService = new GetProfileService(userRepository, permissionRepository);
+const logoutService = new LogoutService(refreshTokenRepository);
+const listSessionsService = new ListSessionsService(refreshTokenRepository);
+const revokeSessionService = new RevokeSessionService(refreshTokenRepository);
+const setupMfaService = new SetupMfaService(userRepository);
+const confirmMfaService = new ConfirmMfaService(userRepository);
+const disableMfaService = new DisableMfaService(userRepository, refreshTokenRepository);
+const exportDataService = new ExportUserDataService(userRepository, organizationRepository, membershipRepository, apiKeyRepository, notificationRepository, auditRepository);
 const startOAuthService = new StartOAuthService(getOAuthAdapters());
 const handleOAuthCallbackService = new HandleOAuthCallbackService(
   getOAuthAdapters(),
@@ -37,7 +48,7 @@ const handleOAuthCallbackService = new HandleOAuthCallbackService(
 function cookieOptions() {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
     ...(env.COOKIE_DOMAIN ? { domain: env.COOKIE_DOMAIN } : {}),
@@ -68,12 +79,16 @@ export class AuthController {
 
   async login(req: Request, res: Response) {
     try {
-      const result = await loginService.execute(req.body);
-      setSessionCookies(res, (result as { accessToken: string }).accessToken, (result as { refreshToken: string }).refreshToken);
-      return res.json({ message: "Logged in." });
+      const result = (await loginService.execute(req.body)) as { accessToken: string; refreshToken: string; mustChangePassword: boolean; emailVerified: boolean };
+      setSessionCookies(res, result.accessToken, result.refreshToken);
+      return res.json({ message: "Logged in.", mustChangePassword: result.mustChangePassword, emailVerified: result.emailVerified });
     } catch (err) {
       const status = (err as { status?: number }).status ?? 401;
+      const code = (err as { code?: string }).code;
       const msg = err instanceof Error ? err.message : "Invalid credentials.";
+      if (code === "MFA_REQUIRED" || msg === "MFA_REQUIRED") {
+        return res.status(403).json({ message: "MFA_REQUIRED", code: "MFA_REQUIRED" });
+      }
       return res.status(status).json({ message: msg });
     }
   }
@@ -90,16 +105,10 @@ export class AuthController {
 
   async logout(req: Request, res: Response) {
     try {
-      const token = req.cookies?.refreshToken as string | undefined;
-      if (token) {
-        try {
-          const payload = verifyToken(token);
-          await refreshTokenRepository.revokeJti(payload.jti);
-        } catch { /* ignore */ }
-      }
+      const result = await logoutService.execute(req.cookies?.refreshToken);
       res.clearCookie("accessToken", clearCookieOptions());
       res.clearCookie("refreshToken", clearCookieOptions());
-      return res.json({ message: "Logged out." });
+      return res.json(result);
     } catch {
       return res.status(400).json({ message: "Error" });
     }
@@ -109,11 +118,10 @@ export class AuthController {
     try {
       const id = req.user?.userId;
       if (!id) throw new Error("Missing credentials.");
-      const user = await userRepository.findById(id);
-      if (!user) return res.status(404).json({ message: "Not found" });
-      const permissions = await getPermissionsService.execute(id);
-      return res.json({ ...user, permissions });
+      return res.json(await getProfileService.execute(id));
     } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unauthorized";
+      if (msg === "Not found") return res.status(404).json({ message: "Not found" });
       return res.status(401).json({ message: "Unauthorized" });
     }
   }
@@ -177,6 +185,66 @@ export class AuthController {
       return res.json(result);
     } catch (err) {
       return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+
+  async setupMfa(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      return res.json(await setupMfaService.execute(userId));
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+
+  async confirmMfa(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      return res.json(await confirmMfaService.execute(userId, req.body));
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+
+  async disableMfa(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      return res.json(await disableMfaService.execute(userId, req.body));
+    } catch (err) {
+      return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
+    }
+  }
+
+  async listSessions(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      return res.json(await listSessionsService.execute(userId));
+    } catch {
+      return res.status(400).json({ message: "Error" });
+    }
+  }
+
+  async revokeSession(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      return res.json(await revokeSessionService.execute(userId, { id: req.params.id }));
+    } catch {
+      return res.status(400).json({ message: "Error" });
+    }
+  }
+
+  async exportData(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error("Missing credentials.");
+      return res.json(await exportDataService.execute(userId));
+    } catch {
+      return res.status(400).json({ message: "Error" });
     }
   }
 

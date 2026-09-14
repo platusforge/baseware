@@ -65,6 +65,13 @@ export type IRefreshTokenRepository = {
   revokeFamily: (family: string) => Promise<void>;
   revokeJti: (jti: string) => Promise<void>;
   revokeAllForUser: (userId: string) => Promise<void>;
+  listForUser: (userId: string) => Promise<{ id: string; family: string; createdAt: Date; expiresAt: Date; revokedAt: Date | null }[]>;
+  revokeOne: (id: string, userId: string) => Promise<void>;
+};
+
+export type IUsageEventRepository = {
+  track: (data: { organizationId: string; metric: string; quantity: number }) => Promise<void>;
+  sumSince: (organizationId: string, metric: string, since: Date) => Promise<number>;
 };
 
 export type IPasswordResetRepository = {

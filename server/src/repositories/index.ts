@@ -1,9 +1,9 @@
 import { IUserRepository } from "@/types/repositories/user-repository";
 import { IPermissionRepository } from "@/types/repositories/permission-repository";
-import { IApiKeyRepository, IAuditRepository, IInvitationRepository, IMembershipRepository, INotificationRepository, IOAuthAccountRepository, IOrganizationRepository, IPasswordHasher, IPasswordResetRepository, IRefreshTokenRepository, ISubscriptionRepository, IWebhookEventRepository } from "@/types/repositories/saas-repositories";
+import { IApiKeyRepository, IAuditRepository, IInvitationRepository, IMembershipRepository, INotificationRepository, IOAuthAccountRepository, IOrganizationRepository, IPasswordHasher, IPasswordResetRepository, IRefreshTokenRepository, ISubscriptionRepository, IUsageEventRepository, IWebhookEventRepository } from "@/types/repositories/saas-repositories";
 import { PrismaUserRepository } from "./prisma/prisma-user-repository";
 import { PrismaPermissionRepository } from "./prisma/prisma-permission-repository";
-import { PrismaApiKeyRepository, PrismaAuditRepository, PrismaInvitationRepository, PrismaMembershipRepository, PrismaNotificationRepository, PrismaOAuthAccountRepository, PrismaOrganizationRepository, PrismaPasswordResetRepository, PrismaRefreshTokenRepository, PrismaSubscriptionRepository, PrismaWebhookEventRepository } from "./prisma/prisma-saas-repositories";
+import { PrismaApiKeyRepository, PrismaAuditRepository, PrismaInvitationRepository, PrismaMembershipRepository, PrismaNotificationRepository, PrismaOAuthAccountRepository, PrismaOrganizationRepository, PrismaPasswordResetRepository, PrismaRefreshTokenRepository, PrismaSubscriptionRepository, PrismaUsageEventRepository, PrismaWebhookEventRepository } from "./prisma/prisma-saas-repositories";
 import { BcryptPasswordHasher } from "./bcrypt/bcrypt-password-hasher";
 
 export const userRepository: IUserRepository = new PrismaUserRepository();
@@ -19,4 +19,5 @@ export const refreshTokenRepository: IRefreshTokenRepository = new PrismaRefresh
 export const passwordResetRepository: IPasswordResetRepository = new PrismaPasswordResetRepository();
 export const oauthAccountRepository: IOAuthAccountRepository = new PrismaOAuthAccountRepository();
 export const webhookEventRepository: IWebhookEventRepository = new PrismaWebhookEventRepository();
+export const usageEventRepository: IUsageEventRepository = new PrismaUsageEventRepository();
 export const passwordHasher: IPasswordHasher = new BcryptPasswordHasher();

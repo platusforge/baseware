@@ -33,7 +33,13 @@ export default function LandingPage() {
         <h3>FAQ</h3>
         <p><strong>How do organizations work?</strong> Each organization has members, roles, invites and its own Stripe subscription.</p>
         <p><strong>How is auth secured?</strong> HttpOnly cookies, 15m access + rotating 7d refresh, bcrypt-12, rate limits.</p>
+        <p><strong>{t("trial")}</strong></p>
       </section>
+      <footer style={{ display: "flex", gap: 16, justifyContent: "center", paddingBottom: 40 }}>
+        <Link to="/terms">{t("terms")}</Link>
+        <Link to="/privacy">{t("privacy")}</Link>
+        <Link to="/dpa">{t("dpa")}</Link>
+      </footer>
     </div>
   );
 }

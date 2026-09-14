@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
   JWT_ISSUER: z.string().default("saas-boilerplate"),
@@ -29,7 +30,16 @@ const envSchema = z.object({
   S3_BUCKET: z.string().optional().default(""),
   S3_ACCESS_KEY: z.string().optional().default(""),
   S3_SECRET_KEY: z.string().optional().default(""),
+  S3_REGION: z.string().optional().default("us-east-1"),
+  S3_PUBLIC_BASE_URL: z.string().optional().default(""),
+  UPLOAD_MAX_MB: z.coerce.number().default(10),
+  APP_HOST: z.string().optional().default("app.example.com"),
+  REDIS_URL: z.string().optional().default(""),
+  RATE_LIMIT_STORE: z.string().optional().default("memory"),
+  REQUIRE_VERIFIED_EMAIL: z.coerce.boolean().default(true),
+  TRIAL_DAYS: z.coerce.number().default(14),
   SENTRY_DSN: z.string().optional().default(""),
+  POSTHOG_KEY: z.string().optional().default(""),
   LOG_LEVEL: z.string().default("info"),
 });
 
@@ -44,7 +54,7 @@ export const env = parsed.data;
 
 // The placeholder shipped in .env.example is public. Refuse to boot
 // production with a compromised secret.
-if (process.env.NODE_ENV === "production" && env.JWT_SECRET.includes("change-me")) {
+if (parsed.data.NODE_ENV === "production" && parsed.data.JWT_SECRET.includes("change-me")) {
   console.error("Refusing to boot: JWT_SECRET still uses the public placeholder. Generate one with: openssl rand -base64 48");
   process.exit(1);
 }

@@ -1,0 +1,26 @@
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.form button {
+  width: 100%;
+  min-height: var(--touch-target);
+}
+
+.secret {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .form {
+    grid-template-columns: 1fr auto;
+  }
+
+  .form button {
+    width: auto;
+  }
+}

@@ -23,6 +23,7 @@ export class CreateCheckoutService {
     try {
       logger.info("CreateCheckoutService: starting...");
       const data = checkoutSchema.parse(input);
+      if (!env.STRIPE_SECRET_KEY && env.NODE_ENV === "production") throw new Error("Billing not configured.");
       const priceId = data.plan === "starter" ? env.STRIPE_PRICE_STARTER : env.STRIPE_PRICE_PRO;
       if (!priceId) throw new Error("Plan price not configured.");
       const org = (await this.organizationRepository.findById(data.organizationId)) as { stripeCustomerId: string | null } | null;
@@ -57,6 +58,7 @@ export class CreatePortalService {
   async execute(organizationId: string) {
     try {
       logger.info("CreatePortalService: starting...");
+      if (!env.STRIPE_SECRET_KEY && env.NODE_ENV === "production") throw new Error("Billing not configured.");
       const org = (await this.organizationRepository.findById(organizationId)) as { stripeCustomerId: string | null } | null;
       if (!org?.stripeCustomerId) throw new Error("No billing customer yet.");
       const session = await this.billingAdapter.createPortalSession({

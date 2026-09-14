@@ -34,3 +34,4 @@ export type { ToastKind } from "./toast";
 export { Tooltip } from "./tooltip";
 export { PageHeader } from "./page-header";
 export { PricingTable } from "./pricing-table";
+export { CookieConsent } from "./cookie-consent";

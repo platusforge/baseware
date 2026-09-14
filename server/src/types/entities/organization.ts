@@ -4,6 +4,7 @@ export type IOrganization = {
   slug: string;
   plan: string;
   stripeCustomerId: string | null;
+  trialEndsAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };

@@ -1,0 +1,9 @@
+.toolbar {
+  margin-bottom: 12px;
+}
+
+@media (min-width: 640px) {
+  .toolbar {
+    max-width: 360px;
+  }
+}

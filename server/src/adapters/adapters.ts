@@ -32,10 +32,13 @@ export type IBillingAdapter = {
   constructWebhookEvent: (rawBody: Buffer, signature: string) => NormalizedWebhookEvent;
   ensureCustomer: (data: { organizationId: string; email: string; name: string }) => Promise<string>;
   getSubscriptionDetails: (subscriptionId: string) => Promise<SubscriptionDetails | null>;
+  listInvoices?: (stripeCustomerId: string) => Promise<{ id: string; amount: number; currency: string; status: string; created: number; pdfUrl: string | null }[]>;
 };
 
 export type IStorageAdapter = {
-  getUploadUrl: (data: { key: string; contentType: string }) => Promise<{ url: string; publicUrl: string }>;
+  isConfigured?: () => boolean;
+  getUploadUrl: (data: { key: string; contentType: string; contentLength?: number }) => Promise<{ url: string; publicUrl: string }>;
+  listInvoices?: (stripeCustomerId: string) => Promise<{ id: string; amount: number; currency: string; status: string; created: number; pdfUrl: string | null }[]>;
 };
 
 export type OAuthProviderName = "google" | "github";
