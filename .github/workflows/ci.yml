@@ -122,5 +122,9 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.prod.yml \
               --env-file .env up -d --build --force-recreate --remove-orphans
 
+            # Apply pending Prisma migrations (required on first boot and after schema changes)
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+              --env-file .env exec -T server npx prisma migrate deploy
+
             # Clean up — .env must not remain on the server
             rm .env

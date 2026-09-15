@@ -9,7 +9,7 @@ type Plan = { id: string; name: string; priceMonthly: number; seats: number; fea
 
 const FALLBACK: Plan[] = [
   { id: "free", name: "Free", priceMonthly: 0, seats: 1, features: ["1 project", "Community support"] },
-  { id: "starter", name: "Starter", priceMonthly: 19, seats: 5, features: ["5 projects", "5 seats", "Email support", "API keys", "Uploads"] },
+  { id: "starter", name: "Starter", priceMonthly: 19, seats: 5, features: ["5 projects", "5 seats", "Email support"] },
   { id: "pro", name: "Pro", priceMonthly: 49, seats: 25, features: ["Unlimited projects", "25 seats", "Priority support", "Audit logs", "API keys"] },
 ];
 
