@@ -14,7 +14,7 @@ export class RefreshSessionService {
     try {
       logger.info("RefreshSessionService: starting...");
       if (!refreshToken) throw new Error("Invalid refresh token.");
-      const payload = verifyToken(refreshToken);
+      const payload = verifyToken(refreshToken, "refresh");
       const stored = await this.refreshTokenRepository.findByJti(payload.jti);
       if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
         if (stored && stored.revokedAt) await this.refreshTokenRepository.revokeFamily(stored.family);

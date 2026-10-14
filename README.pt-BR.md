@@ -1,6 +1,6 @@
 # SaaS Boilerplate
 
-Starter SaaS pronto para produção: **Express + React (Vite) + PostgreSQL**, 100% compatível com **Open Architecture**, com tudo que os boilerplates pagos ($199–$349) entregam — e nada do que eles omitem para B2B.
+Starter SaaS pronto para produção: **Express + React (Vite) + PostgreSQL**, com tudo que os boilerplates pagos ($199–$349) entregam — e nada do que eles omitem para B2B.
 
 > 🇺🇸 English? Read [README.md](./README.md).
 > 🤖 Vai construir com agente de IA? Leia [AGENTS.md](./AGENTS.md) primeiro — é o manual oficial de construção.
@@ -52,11 +52,11 @@ Referência completa: [`docs/pt-BR/`](./docs/pt-BR/inicio-rapido.md) e [`docs/en
 
 ## Segurança de auth (obrigatória)
 
-- Access 15min + refresh rotativo 7 dias em cookies `HttpOnly + Secure + SameSite`. Nunca `localStorage`.
-- Erro genérico `Invalid credentials.` (sem enumeração), compare com dummy-hash, `active` + lockout, bcrypt custo 12.
+- Access 15min + refresh rotativo 7 dias em cookies `HttpOnly + Secure + SameSite`; tokens marcados por tipo (`access`/`refresh`), então um refresh nunca vale como access. Nunca `localStorage`.
+- Erro genérico `Invalid credentials.` (sem enumeração), compare com dummy-hash, `active` + lockout (`failedLoginAttempts`/`lockedUntil` — falhas de senha e MFA), bcrypt custo 12.
 - Rate-limit em `/login` (10/15min) e `/reset/*` (3/h), com Redis quando `REDIS_URL` definido.
 - MFA TOTP (`/auth/mfa/*`, backup codes), sessões, `mustChangePassword` do seed. E-mail verificado exigido para checkout/convites/api-keys/uploads.
-- Tokens de reset com hash SHA-256, uso único, 1h. Helmet + CORS allowlist + TLS em prod (`:3001` restrita via allowlist — nunca exponha). Nunca logar segredos.
+- Tokens de reset com hash SHA-256, uso único, 1h. Helmet + CORS allowlist + TLS em prod; a API nunca é publicada no host (sem entrypoint HTTP puro — Traefik `:443` → nginx `/api` → `server:3000` interno). Nunca logar segredos.
 
 ## Modelo de cobrança
 

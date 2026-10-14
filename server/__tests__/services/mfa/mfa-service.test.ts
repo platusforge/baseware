@@ -1,4 +1,5 @@
 import { SetupMfaService, ConfirmMfaService, DisableMfaService } from "@/services/mfa-service/mfa-service";
+import { sha256 } from "@/lib/crypto";
 
 jest.mock("@/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
@@ -31,5 +32,21 @@ describe("MfaService", () => {
     const mockRefresh = { revokeAllForUser: jest.fn() } as never;
     const svc = new DisableMfaService(mockUsers, mockRefresh);
     await expect(svc.execute("u1", { code: "123456" })).rejects.toThrow("MFA not enabled.");
+  });
+
+  it("should disable with a backup code and revoke sessions", async () => {
+    const backupCode = "a1b2c3d4e5f6";
+    const mockUsers = {
+      findByIdWithHash: jest.fn().mockResolvedValue({
+        mfaSecret: "JBSWY3DPEHPK3PXP",
+        mfaEnabled: true,
+        mfaBackupCodes: [sha256(backupCode)],
+      }),
+      update: jest.fn().mockResolvedValue(undefined),
+    } as never;
+    const mockRefresh = { revokeAllForUser: jest.fn().mockResolvedValue(undefined) } as never;
+    const svc = new DisableMfaService(mockUsers, mockRefresh);
+    await expect(svc.execute("u1", { code: backupCode })).resolves.toEqual({ disabled: true });
+    expect((mockRefresh as unknown as { revokeAllForUser: jest.Mock }).revokeAllForUser).toHaveBeenCalledWith("u1");
   });
 });

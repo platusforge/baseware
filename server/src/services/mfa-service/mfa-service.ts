@@ -6,6 +6,8 @@ import { newMfaSecret, otpauthUrl, verifyTotp, newBackupCodes } from "@/lib/totp
 import { sha256 } from "@/lib/crypto";
 
 const codeSchema = z.object({ code: z.string().regex(/^\d{6}$/, "Invalid code.") });
+// Disable accepts TOTP (6 digits) or a 12-hex backup code.
+const disableCodeSchema = z.object({ code: z.string().regex(/^(\d{6}|[0-9a-f]{12})$/, "Invalid code.") });
 
 export class SetupMfaService {
   constructor(private readonly userRepository: IUserRepository) {}
@@ -62,7 +64,7 @@ export class DisableMfaService {
   async execute(userId: string, input: unknown) {
     try {
       logger.info("DisableMfaService: starting...");
-      const data = codeSchema.parse(input);
+      const data = disableCodeSchema.parse(input);
       const user = (await this.userRepository.findByIdWithHash(userId)) as {
         mfaSecret: string | null; mfaEnabled: boolean; mfaBackupCodes: string[] } | null;
       if (!user?.mfaEnabled || !user.mfaSecret) throw new Error("MFA not enabled.");

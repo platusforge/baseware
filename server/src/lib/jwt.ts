@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import { env } from "@/env";
 
-export type AccessPayload = { sub: string; jti: string; iat?: number };
+export type TokenType = "access" | "refresh";
+export type AccessPayload = { sub: string; jti: string; iat?: number; type?: TokenType };
 
 const TTL_RE = /^(\d+)\s*([smhd])$/i;
 const TTL_MULT: Record<string, number> = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 };
@@ -22,7 +23,7 @@ export function refreshCookieMaxAge(): number {
 }
 
 export function signAccessToken(userId: string, jti: string): string {
-  return jwt.sign({ sub: userId, jti }, env.JWT_SECRET, {
+  return jwt.sign({ sub: userId, jti, type: "access" }, env.JWT_SECRET, {
     algorithm: "HS256",
     expiresIn: env.ACCESS_TOKEN_TTL as jwt.SignOptions["expiresIn"],
     issuer: env.JWT_ISSUER,
@@ -31,7 +32,7 @@ export function signAccessToken(userId: string, jti: string): string {
 }
 
 export function signRefreshToken(userId: string, jti: string): string {
-  return jwt.sign({ sub: userId, jti }, env.JWT_SECRET, {
+  return jwt.sign({ sub: userId, jti, type: "refresh" }, env.JWT_SECRET, {
     algorithm: "HS256",
     expiresIn: env.REFRESH_TOKEN_TTL as jwt.SignOptions["expiresIn"],
     issuer: env.JWT_ISSUER,
@@ -39,12 +40,19 @@ export function signRefreshToken(userId: string, jti: string): string {
   });
 }
 
-export function verifyToken(token: string): AccessPayload {
-  return jwt.verify(token, env.JWT_SECRET, {
+/**
+ * Verify a token and enforce its type. Access and refresh tokens must never
+ * be interchangeable: a refresh token replayed as an access token would
+ * bypass rotation/revocation for its whole 7-day lifetime.
+ */
+export function verifyToken(token: string, expectedType: TokenType): AccessPayload {
+  const payload = jwt.verify(token, env.JWT_SECRET, {
     algorithms: ["HS256"],
     issuer: env.JWT_ISSUER,
     audience: env.JWT_AUDIENCE,
   }) as AccessPayload;
+  if (payload.type !== expectedType) throw new Error("Invalid token type.");
+  return payload;
 }
 
 const VERIFY_TTL = "24h";

@@ -13,7 +13,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env 
 ```
 
 - `:443` serve web + `/api/*` (TLS via Let's Encrypt, HSTS ativo). Todo tráfego público passa aqui.
-- `:3001` serve a API direta em HTTP puro e é restrita a redes privadas pelo `ipallowlist` do Traefik — nunca exponha publicamente, nunca envie credenciais para ela.
+- A API não é publicada no host: o Traefik expõe apenas `:80`/`:443` e o nginx faz proxy de `/api/*` para `server:3000` na rede interna do Docker. Não existe entrypoint HTTP puro para a API.
 - `VITE_API_URL=/api` em prod (bakeado no build via `args`; trocar `VITE_*` exige `build`).
 - `APP_HOST` define o `Host()` do Traefik (sem hardcoded). Healthchecks: `db`, `server` (`/health`), `web`, `redis` (perfil `with-redis`).
 - Backups diários (`db-backup`, 7 diários + 4 semanais + 6 mensais). Offsite: sincronize `/backups` para S3. Restore: derrube o compose, recrie o volume, importe o dump (runbook na doc EN).

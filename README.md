@@ -1,6 +1,6 @@
 # SaaS Boilerplate
 
-Production-ready SaaS starter: **Express + React (Vite) + PostgreSQL**, fully **Open Architecture** compliant, with everything paid boilerplates ($199–$349) ship — and nothing they omit for B2B.
+Production-ready SaaS starter: **Express + React (Vite) + PostgreSQL**, with everything paid boilerplates ($199–$349) ship — and nothing they omit for B2B.
 
 > 🇧🇷 Fala português? Leia [README.pt-BR.md](./README.pt-BR.md).
 > 🤖 Building with an AI agent? Read [AGENTS.md](./AGENTS.md) first — it is the exclusive build manual.
@@ -48,16 +48,16 @@ Route → Controller → Service → Repository (interface) → Implementation
 
 - Routes own paths + middleware stacking only. Controllers parse → call → respond (no logic, no logging). Services own validation (Zod), business logic, logging. Repositories own data access behind interfaces. DI is manual in `server/src/repositories/index.ts` and `server/src/adapters/index.ts`. `@/` maps to `src/` on both sides. All filenames lowercase kebab-case. Commits in English, Conventional Commits.
 
-Full reference: [`docs/en/`](./docs/en/getting-started.md), [`docs/pt-BR/`](./docs/pt-BR/inicio-rapido.md), and the Open Architecture docs this project follows.
+Full reference: [`docs/en/`](./docs/en/getting-started.md) and [`docs/pt-BR/`](./docs/pt-BR/inicio-rapido.md).
 
 ## Auth security (enforced)
 
-- 15-min access + rotating 7-day refresh in `HttpOnly + Secure + SameSite` cookies. Never `localStorage`.
-- Generic `Invalid credentials.` (no enumeration), dummy-hash compare, `active` + lockout (`failedLoginAttempts`/`lockedUntil`), bcrypt cost 12.
+- 15-min access + rotating 7-day refresh in `HttpOnly + Secure + SameSite` cookies; tokens are type-tagged (`access`/`refresh`), so a refresh token can never be replayed as an access token. Never `localStorage`.
+- Generic `Invalid credentials.` (no enumeration), dummy-hash compare, `active` + lockout (`failedLoginAttempts`/`lockedUntil` — password and MFA failures), bcrypt cost 12.
 - Rate-limited `/login` (10/15min) and `/reset/*` (3/h), Redis-backed when `REDIS_URL` is set (multi-replica), in-memory otherwise.
 - TOTP MFA (`/auth/mfa/*`, backup codes SHA-256), sessions list/revoke, `mustChangePassword` seed enforcement.
 - Email verification enforced for checkout/invites/api-keys/uploads (`REQUIRE_VERIFIED_EMAIL`). Password reset tokens SHA-256 hashed, single-use, 1h expiry.
-- Helmet + CORS allowlist + TLS-only public traffic in prod (port `:3001` is restricted to private ranges via Traefik allowlist — never expose it publicly). Secrets never logged; OAuth codes are redacted from HTTP logs.
+- Helmet + CORS allowlist + TLS-only public traffic in prod; the API is never published on the host (no plain-HTTP entrypoint — Traefik `:443` → nginx `/api` → internal `server:3000`). Secrets never logged; OAuth codes are redacted from HTTP logs.
 
 ## Billing model
 

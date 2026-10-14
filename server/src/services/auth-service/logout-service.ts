@@ -14,7 +14,7 @@ export class LogoutService {
       const token = schema.parse(input);
       if (token) {
         try {
-          const payload = verifyToken(token);
+          const payload = verifyToken(token, "refresh");
           await this.refreshTokenRepository.revokeJti(payload.jti);
         } catch {
           // ignore invalid token on logout

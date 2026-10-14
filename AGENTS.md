@@ -4,7 +4,7 @@
 
 ## 1. What this boilerplate is
 
-Open Architecture monorepo: `server/` (Express + Prisma + PostgreSQL) and `web/` (React + Vite). Multi-tenant (organizations, invites, roles), per-org Stripe billing, cookie auth, admin/RBAC, API keys, audit logs, Docker-first, bilingual docs.
+Monorepo: `server/` (Express + Prisma + PostgreSQL) and `web/` (React + Vite). Multi-tenant (organizations, invites, roles), per-org Stripe billing, cookie auth, admin/RBAC, API keys, audit logs, Docker-first, bilingual docs.
 
 ## 2. Non-negotiable rules (violations = broken PR)
 

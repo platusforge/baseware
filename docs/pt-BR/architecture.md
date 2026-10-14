@@ -1,6 +1,6 @@
 # Arquitetura
 
-Monorepo Open Architecture: `server/` (Express + Prisma + PostgreSQL) e `web/` (React + Vite). Multi-tenant (organizações, convites, papéis), billing Stripe por org, auth via cookie, admin/RBAC, API keys, audit logs, Docker-first.
+Monorepo: `server/` (Express + Prisma + PostgreSQL) e `web/` (React + Vite). Multi-tenant (organizações, convites, papéis), billing Stripe por org, auth via cookie, admin/RBAC, API keys, audit logs, Docker-first.
 
 ## Cadeia de camadas
 
@@ -14,7 +14,7 @@ Todo HTTP segue `Route → Controller → Service → Repository (interface) →
 
 ## Auth
 
-Cookies HttpOnly (`accessToken` 15m, `refreshToken` 7d, `SameSite=Lax`, `Secure` em prod). `req.user` via `authMiddleware` (rejeita `active=false` e tokens pré-`passwordChangedAt`). Bcrypt-12 via `IPasswordHasher`. `Invalid credentials.` genérico sempre. Refresh com família `jti` — reuso revoga a família. Rate-limit em register/login/refresh/reset/oauth. `REQUIRE_VERIFIED_EMAIL` bloqueia billing/convites/api-keys/uploads. MFA TOTP + backup codes. `POST /auth/reset/confirm { token, password }` conclui o reset iniciado em `/reset-password?token=`.
+Cookies HttpOnly (`accessToken` 15m, `refreshToken` 7d, `SameSite=Lax`, `Secure` em prod). Tokens carregam tipo (`access`/`refresh`) e cada endpoint exige o tipo correto, então um refresh token não vale como access token. `req.user` via `authMiddleware` (rejeita `active=false` e tokens pré-`passwordChangedAt`). Bcrypt-12 via `IPasswordHasher`. `Invalid credentials.` genérico sempre. Refresh com família `jti` — reuso revoga a família. Rate-limit em register/login/refresh/reset/oauth + lockout por conta que também conta falhas de MFA. `REQUIRE_VERIFIED_EMAIL` bloqueia billing/convites/api-keys/uploads. MFA TOTP + backup codes. `POST /auth/reset/confirm { token, password }` conclui o reset iniciado em `/reset-password?token=`.
 
 ## Multi-tenant + RBAC
 

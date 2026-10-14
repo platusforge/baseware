@@ -9,6 +9,13 @@ import { sha256 } from "@/lib/crypto";
 
 const DUMMY_HASH = "$2b$12$C6UzMDM.H6dfI/f/IKcEe.CxEO8N9ZQ0xG3h6x5y8vJ9w0q1e2r3t4";
 
+/** Same lockout policy for password and MFA failures: 5 → 15 min, 10 → 1h. */
+function lockoutFor(attempts: number): Date | null {
+  if (attempts >= 10) return new Date(Date.now() + 60 * 60 * 1000);
+  if (attempts >= 5) return new Date(Date.now() + 15 * 60 * 1000);
+  return null;
+}
+
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
   password: z.string().min(1).max(128),
@@ -37,7 +44,7 @@ export class LoginService {
       if (!user || !ok) {
         if (user) {
           const attempts = (user.failedLoginAttempts ?? 0) + 1;
-          const lockedUntil = attempts >= 10 ? new Date(Date.now() + 60 * 60 * 1000) : attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
+          const lockedUntil = lockoutFor(attempts);
           await this.userRepository.update(user.id, { failedLoginAttempts: attempts, lockedUntil });
           if (lockedUntil) logger.warn(`LoginService: account locked userId=${user.id}`);
         }
@@ -63,7 +70,9 @@ export class LoginService {
         const totpOk = user.mfaSecret ? verifyTotp(user.mfaSecret, mfaCode) : false;
         if (!isBackup && !totpOk) {
           const attempts = (user.failedLoginAttempts ?? 0) + 1;
-          await this.userRepository.update(user.id, { failedLoginAttempts: attempts });
+          const lockedUntil = lockoutFor(attempts);
+          await this.userRepository.update(user.id, { failedLoginAttempts: attempts, lockedUntil });
+          if (lockedUntil) logger.warn(`LoginService: account locked userId=${user.id}`);
           throw new Error("Invalid credentials.");
         }
         if (isBackup) {

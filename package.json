@@ -2,7 +2,7 @@
   "name": "saas-boilerplate",
   "version": "1.0.0",
   "private": true,
-  "description": "Professional SaaS boilerplate — Express + React (Vite) + PostgreSQL. Open Architecture compliant.",
+  "description": "Professional SaaS boilerplate — Express + React (Vite) + PostgreSQL.",
   "workspaces": [
     "server",
     "web"

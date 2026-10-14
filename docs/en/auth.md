@@ -1,12 +1,12 @@
 # Auth
 
-Cookie sessions: 15-min access + rotating 7-day refresh (`HttpOnly + Secure + SameSite=Lax`). The SPA silently calls `/auth/refresh` once on 401 before logging out.
+Cookie sessions: 15-min access + rotating 7-day refresh (`HttpOnly + Secure + SameSite=Lax`). Tokens are type-tagged (`access`/`refresh`) and every endpoint enforces its type — a refresh token can never be replayed as an access token, so rotation/revocation always applies. The SPA silently calls `/auth/refresh` once on 401 before logging out.
 
 Session lifetime rules: password change/reset revokes every session immediately; deactivated users are rejected on the next request (access tokens carry `iat`, checked against `passwordChangedAt`).
 
 Email verification is enforced for paid/abuse-sensitive actions (`REQUIRE_VERIFIED_EMAIL=true`): checkout, invites, api-keys and uploads return 403 until verified. Login stays allowed so users can reach Settings → Resend. Disable only for closed betas.
 
-MFA (TOTP, no extra deps): `POST /auth/mfa/setup` → secret + `otpauthUrl`, `POST /auth/mfa/confirm { code }` → backup codes (SHA-256 stored, single-use). Login with `mfaEnabled` requires `{ mfaCode }` or returns `403 MFA_REQUIRED`. Disable revokes all sessions. Sessions: `GET /auth/sessions`, `DELETE /auth/sessions/:id`.
+MFA (TOTP, no extra deps): `POST /auth/mfa/setup` → secret + `otpauthUrl`, `POST /auth/mfa/confirm { code }` → backup codes (SHA-256 stored, single-use). Login with `mfaEnabled` requires `{ mfaCode }` or returns `403 MFA_REQUIRED`; failed codes count toward the same account lockout as wrong passwords. Disable revokes all sessions. Sessions: `GET /auth/sessions`, `DELETE /auth/sessions/:id`.
 
 Seeded `admin@example.com` ships with `mustChangePassword=true`. Dashboard shows a blocking banner until changed; `POST /auth/password` clears the flag and revokes other sessions.
 
@@ -15,7 +15,7 @@ Seeded `admin@example.com` ships with `mustChangePassword=true`. Dashboard shows
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/auth/register` | Zod-validated, bcrypt-12, rate-limited 20/h, generic response (no enumeration), sends verification email |
-| POST | `/auth/login` | Rate-limited 10/15min, generic errors, lockout 5→15min / 10→1h |
+| POST | `/auth/login` | Rate-limited 10/15min, generic errors, lockout 5→15min / 10→1h (password and MFA failures tally together) |
 | POST | `/auth/refresh` | Rate-limited 10/15min, rotates pair, reuse revokes family, rejects inactive users |
 | POST | `/auth/logout` | Clears cookies, revokes `jti` via `LogoutService` |
 | GET | `/auth/me` | Session restore for `AuthContext` (includes `permissions` for `PageRoute`) |

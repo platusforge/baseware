@@ -17,7 +17,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile with-r
 ```
 
 - `:443` serves web + `/api/*` (TLS via Let's Encrypt, HSTS enabled). All public traffic goes here. Web Host comes from `APP_HOST` (no more hardcoded domain).
-- `:3001` serves the API directly over plain HTTP and is restricted to private ranges by a Traefik `ipallowlist` middleware — never expose it publicly, never send credentials to it.
+- The API is not published on the host: Traefik exposes only `:80`/`:443`, and nginx proxies `/api/*` to `server:3000` over the internal Docker network. There is no plain-HTTP API entrypoint.
 - `VITE_API_URL=/api` in prod (baked at build time via `args`; changing `VITE_*` requires `docker compose build`, not just `up`).
 - DB backups run daily (`db-backup`, 7 daily + 4 weekly + 6 monthly). Offsite: sync `/backups` to S3 (`aws s3 sync`) — see runbook below.
 - Healthchecks: `db` (pg_isready), `server` (`/health`), `web` (nginx `/`), `redis` (ping, profile only).

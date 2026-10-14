@@ -27,13 +27,14 @@ function buildStore(prefix: string) {
 }
 
 function limiter(opts: { windowMs: number; max: number; prefix: string }) {
+  const store = buildStore(opts.prefix);
   return rateLimit({
     windowMs: opts.windowMs,
     max: opts.max,
     standardHeaders: "draft-7",
     legacyHeaders: false,
     message: { message: "Too many requests" },
-    ...(buildStore(opts.prefix) ? { store: buildStore(opts.prefix) as never } : {}),
+    ...(store ? { store: store as never } : {}),
   });
 }
 

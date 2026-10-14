@@ -25,7 +25,7 @@ async function handle(req: Request): Promise<string | null> {
   if (!token) return null;
   let payload;
   try {
-    payload = verifyToken(token);
+    payload = verifyToken(token, "access");
   } catch {
     return null;
   }

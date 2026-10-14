@@ -1,17 +1,17 @@
 # Auth
 
-Sessões em cookie: access 15min + refresh rotativo 7 dias (`HttpOnly + Secure + SameSite=Lax`). O SPA tenta `/auth/refresh` silenciosamente uma vez no 401 antes de deslogar.
+Sessões em cookie: access 15min + refresh rotativo 7 dias (`HttpOnly + Secure + SameSite=Lax`). Os tokens carregam tipo (`access`/`refresh`) e cada endpoint exige o tipo correto — um refresh token nunca vale como access token, então rotação/revogação sempre se aplicam. O SPA tenta `/auth/refresh` silenciosamente uma vez no 401 antes de deslogar.
 
 Regras de lifetime: troca/reset de senha revoga todas as sessões na hora; usuários desativados são rejeitados no próximo request (access tokens carregam `iat`, comparado com `passwordChangedAt`).
 
-Verificação de e-mail exigida para ações pagas/sensíveis (`REQUIRE_VERIFIED_EMAIL=true`): checkout, convites, api-keys e uploads retornam 403 até verificar. Login continua permitido para alcançar Configurações → Reenviar. MFA (TOTP, sem deps): `POST /auth/mfa/setup` → secret + otpauthUrl, `POST /auth/mfa/confirm { code }` → backup codes. Login com MFA exige `{ mfaCode }` ou retorna `403 MFA_REQUIRED`. Sessões: `GET /auth/sessions`, `DELETE /auth/sessions/:id`. Exportação LGPD: `GET /auth/privacy/export`. Seed `admin@example.com` com `mustChangePassword=true` (banner bloqueia até trocar).
+Verificação de e-mail exigida para ações pagas/sensíveis (`REQUIRE_VERIFIED_EMAIL=true`): checkout, convites, api-keys e uploads retornam 403 até verificar. Login continua permitido para alcançar Configurações → Reenviar. MFA (TOTP, sem deps): `POST /auth/mfa/setup` → secret + otpauthUrl, `POST /auth/mfa/confirm { code }` → backup codes. Login com MFA exige `{ mfaCode }` ou retorna `403 MFA_REQUIRED`; códigos errados contam no mesmo lockout da senha. Sessões: `GET /auth/sessions`, `DELETE /auth/sessions/:id`. Exportação LGPD: `GET /auth/privacy/export`. Seed `admin@example.com` com `mustChangePassword=true` (banner bloqueia até trocar).
 
 ## Endpoints
 
 | Método | Rota | Notas |
 |---|---|---|
 | POST | `/auth/register` | Validado com Zod, bcrypt-12, rate-limit 20/h, resposta genérica (sem enumeração), envia e-mail de verificação |
-| POST | `/auth/login` | Rate-limit 10/15min, erros genéricos, lockout 5→15min / 10→1h |
+| POST | `/auth/login` | Rate-limit 10/15min, erros genéricos, lockout 5→15min / 10→1h (falhas de senha e MFA contam juntas) |
 | POST | `/auth/refresh` | Rate-limit 10/15min, rotaciona o par, reuso revoga a família, rejeita inativos |
 | POST | `/auth/logout` | Limpa cookies, revoga `jti` via `LogoutService` |
 | GET | `/auth/me` | Restaura sessão no `AuthContext` (inclui `permissions` p/ `PageRoute`) |

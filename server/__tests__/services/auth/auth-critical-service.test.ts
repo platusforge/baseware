@@ -11,6 +11,10 @@ jest.mock("@/lib/jwt", () => ({
   verifyToken: jest.fn(),
 }));
 
+jest.mock("@/lib/totp", () => ({
+  verifyTotp: jest.fn().mockReturnValue(false),
+}));
+
 describe("LoginService lockout", () => {
   it("should lock after 5 failures with generic error and warn", async () => {
     const mockUsers = {
@@ -52,6 +56,30 @@ describe("LoginService lockout", () => {
     const err = await svc.execute({ email: "a@b.co", password: "right-password-1" }).catch((e) => e);
     expect(err.message).toMatch(/Too many attempts/);
     expect(err.status).toBe(429);
+  });
+
+  it("should lock after 5 MFA failures (same policy as passwords)", async () => {
+    const mockUsers = {
+      findByEmail: jest.fn().mockResolvedValue({
+        id: "u1",
+        passwordHash: "h",
+        active: true,
+        lockedUntil: null,
+        failedLoginAttempts: 4,
+        mfaEnabled: true,
+        mfaSecret: "JBSWY3DPEHPK3PXP",
+        mfaBackupCodes: [],
+      }),
+      update: jest.fn().mockResolvedValue(undefined),
+    } as never;
+    const mockHasher = { compare: jest.fn().mockResolvedValue(true) } as never;
+    const mockRefresh = { create: jest.fn() } as never;
+    const svc = new LoginService(mockUsers, mockHasher, mockRefresh);
+    await expect(svc.execute({ email: "a@b.co", password: "right-password-1", mfaCode: "123456" })).rejects.toThrow("Invalid credentials.");
+    expect((mockUsers as unknown as { update: jest.Mock }).update).toHaveBeenCalledWith(
+      "u1",
+      expect.objectContaining({ failedLoginAttempts: 5, lockedUntil: expect.any(Date) }),
+    );
   });
 });
 

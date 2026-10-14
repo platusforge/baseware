@@ -4,7 +4,7 @@ services:
   traefik:
     image: traefik:v2.11
     restart: always
-    ports: ["80:80", "443:443", "3001:3001"]
+    ports: ["80:80", "443:443"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/traefik/:/data/
@@ -14,7 +14,6 @@ services:
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.websecure.address=:443
-      - --entrypoints.apihttp.address=:3001
       - --certificatesresolvers.le.acme.tlschallenge=true
       - --certificatesresolvers.le.acme.email=${ADMIN_EMAIL}
       - --certificatesresolvers.le.acme.storage=/data/acme.json
@@ -62,15 +61,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.server.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.server.entrypoints=apihttp"
-      # :3001 is plain HTTP with no auth guarantees: restrict it to private
-      # ranges (health checks, admin tunnels). Public traffic uses :443 only.
-      - "traefik.http.middlewares.api-allowlist.ipallowlist.sourcerange=127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
-      - "traefik.http.routers.server.middlewares=api-allowlist"
-      - "traefik.http.services.server.loadbalancer.server.port=${SERVER_PORT:-3000}"
+    # No Traefik labels: the API is never published on the host. Public
+    # traffic goes Traefik :443 → web nginx → /api/* → server:3000 on the
+    # internal Docker network only.
 
   web:
     restart: always

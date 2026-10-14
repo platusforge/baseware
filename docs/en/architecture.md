@@ -1,6 +1,6 @@
 # Architecture
 
-Open Architecture monorepo: `server/` (Express + Prisma + PostgreSQL) and `web/` (React + Vite). Multi-tenant (organizations, invites, roles), per-org Stripe billing, cookie auth, admin/RBAC, API keys, audit logs, Docker-first.
+Monorepo: `server/` (Express + Prisma + PostgreSQL) and `web/` (React + Vite). Multi-tenant (organizations, invites, roles), per-org Stripe billing, cookie auth, admin/RBAC, API keys, audit logs, Docker-first.
 
 ## Layer chain
 
@@ -14,7 +14,7 @@ Every HTTP request follows `Route → Controller → Service → Repository (int
 
 ## Auth
 
-HttpOnly cookies (`accessToken` 15m, `refreshToken` 7d, `SameSite=Lax`, `Secure` in prod). `req.user` set by `authMiddleware` (rejects `active=false` and pre-`passwordChangedAt` tokens). Bcrypt-12 via `IPasswordHasher`. Generic `Invalid credentials.` everywhere. Refresh rotation with `jti` family — reuse revokes the whole family. Rate-limit on register/login/refresh/reset/oauth. `REQUIRE_VERIFIED_EMAIL` gates billing/invites/api-keys/uploads. MFA TOTP + backup codes. `POST /auth/reset/confirm { token, password }` completes the reset started at `/reset-password?token=`.
+HttpOnly cookies (`accessToken` 15m, `refreshToken` 7d, `SameSite=Lax`, `Secure` in prod). Tokens are type-tagged (`access`/`refresh`) and each endpoint enforces its type, so a refresh token cannot be replayed as an access token. `req.user` set by `authMiddleware` (rejects `active=false` and pre-`passwordChangedAt` tokens). Bcrypt-12 via `IPasswordHasher`. Generic `Invalid credentials.` everywhere. Refresh rotation with `jti` family — reuse revokes the whole family. Rate-limit on register/login/refresh/reset/oauth + per-account lockout that also counts MFA failures. `REQUIRE_VERIFIED_EMAIL` gates billing/invites/api-keys/uploads. MFA TOTP + backup codes. `POST /auth/reset/confirm { token, password }` completes the reset started at `/reset-password?token=`.
 
 ## Multi-tenant + RBAC
 
