@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useI18n } from "@/contexts/i18n-context";
 import { api } from "@/services/api";
-import { friendlyAuthError } from "@/utils/auth-errors";
+import { translateApiError } from "@/utils/api-errors";
 import { Alert, AuthCard, Button, Input } from "@/components";
 import styles from "./index.module.css";
 
@@ -61,7 +61,7 @@ export default function LoginPage() {
         setError(t("mfaRequired"));
         return;
       }
-      setError(friendlyAuthError(raw, t));
+      setError(translateApiError(raw, t, "loginFailed"));
     } finally {
       setLoading(false);
     }

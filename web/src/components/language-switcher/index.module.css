@@ -1,0 +1,78 @@
+/* Compact cycling toggle (public header, auth pages, icon rail). */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+
+.toggle:hover {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.short {
+  line-height: 1;
+}
+
+/* Select with full language names (dashboard sidebar). */
+.menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  color: var(--color-text-muted);
+}
+
+.select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 30px 0 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color var(--transition);
+}
+
+.select:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.icon {
+  position: absolute;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.toggle .icon {
+  position: static;
+  width: 16px;
+  height: 16px;
+}
+
+.chevron {
+  position: absolute;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}

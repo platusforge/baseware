@@ -11,9 +11,11 @@ type Props = {
   size?: "sm" | "md" | "lg";
   footer?: React.ReactNode;
   children: React.ReactNode;
+  /** Accessible label for the close button. */
+  closeLabel?: string;
 };
 
-export function Modal({ open, onClose, title, description, size = "md", footer, children }: Props) {
+export function Modal({ open, onClose, title, description, size = "md", footer, children, closeLabel = "Close dialog" }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const prevFocus = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(open);
@@ -64,7 +66,7 @@ export function Modal({ open, onClose, title, description, size = "md", footer, 
             <h2 className={styles.title}>{title}</h2>
             {description && <p className={styles.description}>{description}</p>}
           </div>
-          <button type="button" className={styles.close} aria-label="Close dialog" onClick={onClose}>✕</button>
+          <button type="button" className={styles.close} aria-label={closeLabel} onClick={onClose}>✕</button>
         </div>
         <div className={styles.body}>{children}</div>
         {footer && <div className={styles.footer}>{footer}</div>}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/services/api";
-import { friendlyAuthError } from "@/utils/auth-errors";
+import { translateApiError } from "@/utils/api-errors";
 import { Input, Button, Alert, AuthCard } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
 import styles from "./index.module.css";
@@ -21,10 +21,10 @@ export default function ResetPasswordPage() {
     setError("");
     setLoading(true);
     try {
-      const r = await api.post<{ message: string }>("/auth/reset/request", { email });
-      setDone(r.message);
+      await api.post("/auth/reset/request", { email });
+      setDone(t("resetSent"));
     } catch (err) {
-      setError(friendlyAuthError(err instanceof Error ? err.message : "", t));
+      setError(translateApiError(err instanceof Error ? err.message : "", t));
     } finally {
       setLoading(false);
     }
@@ -35,11 +35,10 @@ export default function ResetPasswordPage() {
     setError("");
     setLoading(true);
     try {
-      const r = await api.post<{ message: string }>("/auth/reset/confirm", { token, password });
-      setDone(r.message);
+      await api.post("/auth/reset/confirm", { token, password });
+      setDone(t("resetDone"));
     } catch (err) {
-      const raw = err instanceof Error ? err.message : "";
-      setError(raw === "Invalid or expired token." ? t("resetInvalid") : friendlyAuthError(raw, t));
+      setError(translateApiError(err instanceof Error ? err.message : "", t, "resetInvalid"));
     } finally {
       setLoading(false);
     }

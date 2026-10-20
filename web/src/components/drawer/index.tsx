@@ -9,9 +9,11 @@ type Props = {
   title?: string;
   side?: "left" | "right";
   children: React.ReactNode;
+  /** Accessible label for the close button. */
+  closeLabel?: string;
 };
 
-export function Drawer({ open, onClose, title, side = "left", children }: Props) {
+export function Drawer({ open, onClose, title, side = "left", children, closeLabel = "Close panel" }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const prevFocus = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(open);
@@ -59,7 +61,7 @@ export function Drawer({ open, onClose, title, side = "left", children }: Props)
       >
         <div className={styles.header}>
           {title && <h2 className={styles.title}>{title}</h2>}
-          <button type="button" className={styles.close} aria-label="Close panel" onClick={onClose}>✕</button>
+          <button type="button" className={styles.close} aria-label={closeLabel} onClick={onClose}>✕</button>
         </div>
         <div className={styles.body}>{children}</div>
       </div>

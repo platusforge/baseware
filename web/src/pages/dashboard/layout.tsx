@@ -4,7 +4,7 @@ import { NAV_ITEMS } from "@/routes";
 import { useAuth } from "@/contexts/auth-context";
 import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
-import { Alert, Avatar, Brand, Button, Drawer, IconButton, PageTransition, Select, Sidebar, SidebarNav, type SidebarItem } from "@/components";
+import { Alert, Avatar, Brand, Button, Drawer, IconButton, LanguageSwitcher, PageTransition, Select, Sidebar, SidebarNav, type SidebarItem } from "@/components";
 import styles from "./layout.module.css";
 
 const SIDEBAR_STORAGE_KEY = "sidebar-collapsed";
@@ -67,6 +67,7 @@ export default function DashboardLayout() {
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 4h16v2H2zM2 9h16v2H2zM2 14h16v2H2z" fill="currentColor" /></svg>
         </IconButton>
         <span className={styles.topbarTitle}>{current?.name ?? t("dashboard")}</span>
+        <LanguageSwitcher variant="toggle" iconOnly />
         <span className={styles.topbarAvatar}>
           <Avatar name={user?.email ?? "?"} size="sm" />
         </span>
@@ -91,6 +92,11 @@ export default function DashboardLayout() {
         }
         footer={
           <>
+            {collapsed ? (
+              <LanguageSwitcher variant="toggle" iconOnly className={styles.langRail} />
+            ) : (
+              <LanguageSwitcher variant="menu" />
+            )}
             <span className={[styles.user, collapsed ? styles.userCollapsed : ""].filter(Boolean).join(" ")}>
               <Avatar name={user?.email ?? "?"} size="sm" />
               <small className={[styles.email, collapsed ? styles.emailHidden : ""].filter(Boolean).join(" ")}>{user?.email}</small>
@@ -108,7 +114,7 @@ export default function DashboardLayout() {
         }
       />
 
-      <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} title={current?.name ?? t("dashboard")}>
+      <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} title={current?.name ?? t("dashboard")} closeLabel={t("close")}>
         <div className={styles.drawerBody}>
           {orgSelect}
           <SidebarNav items={items} navLabel={t("dashboard")} />

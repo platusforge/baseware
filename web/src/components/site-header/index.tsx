@@ -1,5 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { Brand } from "@/components/brand";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { useAuth } from "@/contexts/auth-context";
 import { useI18n } from "@/contexts/i18n-context";
 import styles from "./index.module.css";
@@ -10,13 +11,13 @@ import styles from "./index.module.css";
  */
 export function SiteHeader() {
   const { user, loading } = useAuth();
-  const { t, lang, setLang } = useI18n();
+  const { t } = useI18n();
   const navClass = ({ isActive }: { isActive: boolean }) => [styles.link, isActive ? styles.active : ""].filter(Boolean).join(" ");
 
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link to="/" className={styles.brandLink} aria-label="Home">
+        <Link to="/" className={styles.brandLink} aria-label={t("home")}>
           <Brand />
         </Link>
 
@@ -30,14 +31,7 @@ export function SiteHeader() {
         </nav>
 
         <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.lang}
-            onClick={() => setLang(lang === "en" ? "pt-BR" : "en")}
-            aria-label={t("switchLanguage")}
-          >
-            {lang === "en" ? "PT" : "EN"}
-          </button>
+          <LanguageSwitcher variant="toggle" />
 
           {!loading &&
             (user ? (

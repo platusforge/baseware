@@ -8,6 +8,7 @@ Biblioteca de componentes zero-dependência em `web/src/components/` (React + CS
 |---|---|---|
 | Button | `button/` | Variantes primary/secondary/outline/ghost/danger/danger-outline, sm/md/lg, `loading`, `fullWidth`, encaminha `ref` |
 | IconButton | `icon-button/` | Botão quadrado, **`label` obrigatório** (aria-label + tooltip) |
+| LanguageSwitcher | `language-switcher/` | `menu` (select nativo com nomes completos) ou `toggle` (alterna idioma, `iconOnly` para trilhos); persiste a escolha e atualiza `<html lang>` |
 | Sidebar / SidebarNav | `sidebar/` | Sidebar desktop retrátil (estado do modo trilho é do consumidor) + nav compartilhada do drawer mobile |
 | Brand | `brand/` | Marca (símbolo + nome) — rebranding em um só lugar; `markOnly` para espaços compactos |
 | AuthCard | `auth-card/` | Shell de card centralizado das páginas de auth: marca, título/subtítulo, corpo, rodapé |
@@ -20,12 +21,12 @@ Biblioteca de componentes zero-dependência em `web/src/components/` (React + CS
 | Badge | `badge/` | default/primary/success/warning/danger/info, dot opcional |
 | Avatar | `avatar/` | Iniciais como fallback, 5 tamanhos, dot de presença opcional |
 | Spinner / Skeleton | `spinner/` `skeleton/` | `role="status"` + label sr-only; shimmer respeita reduced motion |
-| SearchBar | `search-bar/` | Ícone + botão limpar próprio (o nativo do WebKit fica oculto), `debounceMs` opcional |
-| DataTable | `data-table/` | Colunas tipadas, ordenação (`aria-sort`), seleção, skeletons, `responsive="cards"`/`"scroll"`; copiar célula no clique (`copyable`), toolbar embutida (slot de busca via `toolbar`), `columnManager` (ocultar/reordenar, persiste com `storageKey`) e exportação Excel sem dependências (`exportable`) |
+| SearchBar | `search-bar/` | Ícone + botão limpar próprio (o nativo do WebKit fica oculto), `debounceMs`, `clearLabel` |
+| DataTable | `data-table/` | Colunas tipadas, ordenação (`aria-sort`), seleção, skeletons, `responsive="cards"`/`"scroll"`; copiar célula no clique (`copyable`), toolbar embutida (slot de busca via `toolbar`), `columnManager` (ocultar/reordenar, persiste com `storageKey`), exportação Excel sem dependências (`exportable`) e labels localizados (`labels`, ver `useDataTableLabels`) |
 | ColumnManager | `column-manager/` | Popover para mostrar/ocultar e reordenar colunas (checkboxes + setas); usado pelo DataTable, usável sozinho |
-| Pagination | `pagination/` | Algoritmo com elipse, seletor de page-size, `Página X de Y` compacta no mobile |
-| Modal | `modal/` | Foco gerenciado + restauração, Escape/overlay fecha, trava scroll, **bottom-sheet no mobile** |
-| Drawer | `drawer/` | Painel lateral — usado na navegação mobile do dashboard |
+| Pagination | `pagination/` | Algoritmo com elipse, seletor de page-size, `Página X de Y` compacta no mobile, `labels` localizados |
+| Modal | `modal/` | Foco gerenciado + restauração, Escape/overlay fecha, trava scroll, **bottom-sheet no mobile**, `closeLabel` |
+| Drawer | `drawer/` | Painel lateral — usado na navegação mobile do dashboard, `closeLabel` |
 | Dropdown | `dropdown/` | Papéis `menu`/`menuitem`, setas navegam, Escape devolve o foco |
 | Tabs | `tabs/` | Roving tabindex + setas/Home/End, rolagem horizontal no mobile |
 | Card | `card/` | `Card` + Header/Title/Description/Content/Footer |
@@ -105,7 +106,7 @@ Prints capturados do app rodando com o tema escuro padrão (`inputs.png` vs `inp
 3. Mobile-first: base para celular; evolua com `@media (min-width: 720px)`.
 4. Tudo interativo alcançável por teclado com `:focus-visible`; botão só-ícone exige `aria-label`; estados async usam `role="status"`/`aria-busy`.
 5. Alvos de toque ≥ 44px; tabelas sempre com comportamento `responsive` — nunca overflow horizontal cru no celular.
-6. Strings visíveis via props com default em inglês (i18n é dono da página).
+6. Strings visíveis via props com default em inglês (i18n é dono da página). Páginas usam `useI18n()` e `useDataTableLabels()` — veja [i18n](i18n.md).
 
 ## Theming
 

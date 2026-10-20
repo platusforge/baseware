@@ -56,24 +56,6 @@
   gap: 6px;
 }
 
-.lang {
-  border: 0;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: color var(--transition), background var(--transition);
-}
-
-.lang:hover {
-  color: var(--color-text);
-  background: var(--color-surface);
-}
-
 .login {
   display: none;
   align-items: center;

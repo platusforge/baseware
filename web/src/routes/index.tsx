@@ -21,7 +21,9 @@ import AuditPage from "@/pages/dashboard/audit";
 import SettingsPage from "@/pages/dashboard/settings";
 import AdminPage from "@/pages/dashboard/admin";
 
-export const NAV_ITEMS = [
+import type { MessageKey } from "@/i18n";
+
+export const NAV_ITEMS: { key: string; labelKey: MessageKey; path: string }[] = [
   { key: "dashboard", labelKey: "overview", path: "/dashboard" },
   { key: "members", labelKey: "members", path: "/dashboard/members" },
   { key: "billing", labelKey: "billing", path: "/dashboard/billing" },

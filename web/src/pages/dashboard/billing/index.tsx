@@ -5,6 +5,7 @@ import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
 import type { BadgeVariant } from "@/components";
 import { formatDate } from "@/utils/dates";
+import { formatCurrency } from "@/utils/format";
 import styles from "./index.module.css";
 
 type Status = { plan: string; status: string; trialEndsAt?: string | null };
@@ -106,11 +107,7 @@ export default function BillingPage() {
             {
               key: "amount",
               label: t("amount"),
-              render: (r) =>
-                new Intl.NumberFormat(lang === "pt-BR" ? "pt-BR" : "en-US", {
-                  style: "currency",
-                  currency: r.currency.toUpperCase(),
-                }).format(r.amount / 100),
+              render: (r) => formatCurrency(r.amount / 100, r.currency, lang),
             },
             {
               key: "status",

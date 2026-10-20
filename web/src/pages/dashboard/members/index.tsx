@@ -3,6 +3,7 @@ import { api } from "@/services/api";
 import { Badge, Button, DataTable, Input, PageHeader, SearchBar, toast, type Column, type SortDir } from "@/components";
 import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
+import { useDataTableLabels } from "@/i18n/use-data-table-labels";
 import styles from "./index.module.css";
 
 type Member = { userId: string; email: string; role: string };
@@ -16,6 +17,7 @@ const ROLE_VARIANT: Record<string, "primary" | "info" | "default"> = {
 export default function MembersPage() {
   const { current } = useOrganization();
   const { t } = useI18n();
+  const tableLabels = useDataTableLabels();
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
   const [query, setQuery] = useState("");
@@ -79,7 +81,7 @@ export default function MembersPage() {
 
   return (
     <div>
-      <PageHeader title={t("members")} subtitle={current ? `${members.length} ${t("membersSubtitle")} ${current.name}` : undefined} />
+      <PageHeader title={t("members")} subtitle={current ? `${t("membersCount", { count: members.length })} · ${current.name}` : undefined} />
       <form
         className={styles.invite}
         onSubmit={(e) => {
@@ -91,7 +93,7 @@ export default function MembersPage() {
         <Button type="submit">{t("inviteByEmail")}</Button>
       </form>
       <div className={styles.toolbar}>
-        <SearchBar value={query} onChange={setQuery} placeholder={t("searchMembers")} debounceMs={200} />
+        <SearchBar value={query} onChange={setQuery} placeholder={t("searchMembers")} debounceMs={200} clearLabel={t("clearSearch")} />
       </div>
       <DataTable
         columns={columns}
@@ -103,6 +105,7 @@ export default function MembersPage() {
         caption={t("organizationMembers")}
         emptyTitle={t("noMembers")}
         emptyHint={query ? t("searchHint") : t("inviteHint")}
+        labels={tableLabels}
       />
     </div>
   );

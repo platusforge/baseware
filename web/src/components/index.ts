@@ -1,6 +1,7 @@
 export { Button } from "./button";
 export type { ButtonVariant, ButtonSize } from "./button";
 export { IconButton } from "./icon-button";
+export { LanguageSwitcher } from "./language-switcher";
 export { Sidebar, SidebarNav } from "./sidebar";
 export type { SidebarItem } from "./sidebar";
 export { Brand } from "./brand";
@@ -27,6 +28,7 @@ export type { Column, SortDir, DataTableLabels } from "./data-table";
 export { ColumnManager } from "./column-manager";
 export type { ColumnManagerItem } from "./column-manager";
 export { Pagination } from "./pagination";
+export type { PaginationLabels } from "./pagination";
 export { Modal } from "./modal";
 export { Drawer } from "./drawer";
 export { Dropdown } from "./dropdown";

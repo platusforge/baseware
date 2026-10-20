@@ -88,6 +88,10 @@
   transform: translateX(12px);
 }
 
+.langRail {
+  justify-self: center;
+}
+
 .logoutCentered {
   justify-self: center;
 }

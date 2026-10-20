@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { api } from "@/services/api";
 import { Badge, DataTable, PageHeader, SearchBar } from "@/components";
 import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
+import { useDataTableLabels } from "@/i18n/use-data-table-labels";
 import { formatDateTime } from "@/utils/dates";
 import styles from "./index.module.css";
 
@@ -18,6 +19,7 @@ function variantFor(action: string): "danger" | "warning" | "success" | "default
 export default function AuditPage() {
   const { current } = useOrganization();
   const { t, lang } = useI18n();
+  const tableLabels = useDataTableLabels();
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,7 +43,7 @@ export default function AuditPage() {
     <div>
       <PageHeader title={t("auditLog")} subtitle={current ? `${t("activityIn")} ${current.name}` : undefined} />
       <div className={styles.toolbar}>
-        <SearchBar value={query} onChange={setQuery} placeholder={t("filterActions")} debounceMs={200} />
+        <SearchBar value={query} onChange={setQuery} placeholder={t("filterActions")} debounceMs={200} clearLabel={t("clearSearch")} />
       </div>
       <DataTable
         columns={[
@@ -63,6 +65,7 @@ export default function AuditPage() {
         caption={t("auditLog")}
         emptyTitle={t("noActivity")}
         emptyHint={query ? t("filterHint") : t("auditHint")}
+        labels={tableLabels}
       />
     </div>
   );

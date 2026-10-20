@@ -5,6 +5,7 @@ import { Alert, Badge, Button, Card, Input, Modal, PageHeader } from "@/componen
 import { useAuth } from "@/contexts/auth-context";
 import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
+import { translateApiError } from "@/utils/api-errors";
 import { formatDateTime } from "@/utils/dates";
 import styles from "./index.module.css";
 
@@ -28,34 +29,47 @@ export default function SettingsPage() {
 
   async function createOrg() {
     if (!name.trim()) return;
-    await api.post("/organizations", { name: name.trim() });
-    setName("");
-    reload();
+    try {
+      await api.post("/organizations", { name: name.trim() });
+      setName("");
+      reload();
+    } catch (err) {
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
+    }
   }
 
   async function resendVerification() {
-    const result = await api.post<{ message: string }>("/auth/verify/request", {});
-    setMessage(result.message);
+    try {
+      await api.post("/auth/verify/request", {});
+      setMessage(t("verificationSent"));
+    } catch (err) {
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
+    }
   }
 
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const result = await api.post<{ message: string }>("/auth/password", { currentPassword, newPassword });
-      setMessage(result.message);
+      await api.post<{ message: string }>("/auth/password", { currentPassword, newPassword });
+      setMessage(t("passwordUpdated"));
       setCurrentPassword("");
       setNewPassword("");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : t("genericError"));
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
     }
   }
 
   async function deleteOrg() {
     if (!current) return;
-    await api.del(`/organizations/${current.id}`);
-    setConfirmDeleteOrg(false);
-    reload();
-    nav("/dashboard");
+    try {
+      await api.del(`/organizations/${current.id}`);
+      setConfirmDeleteOrg(false);
+      reload();
+      nav("/dashboard");
+    } catch (err) {
+      setConfirmDeleteOrg(false);
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
+    }
   }
 
   async function deleteAccountWithPassword(e: React.FormEvent) {
@@ -65,7 +79,7 @@ export default function SettingsPage() {
       await logout();
       nav("/login");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : t("genericError"));
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
     }
   }
 
@@ -78,36 +92,52 @@ export default function SettingsPage() {
   }
 
   async function setupMfa() {
-    const r = await api.post<{ secret: string; otpauthUrl: string }>("/auth/mfa/setup", {});
-    setMfaSecret(r.secret);
-    setMfaUrl(r.otpauthUrl);
+    try {
+      const r = await api.post<{ secret: string; otpauthUrl: string }>("/auth/mfa/setup", {});
+      setMfaSecret(r.secret);
+      setMfaUrl(r.otpauthUrl);
+    } catch (err) {
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
+    }
   }
 
   async function confirmMfa() {
-    const r = await api.post<{ backupCodes: string[] }>("/auth/mfa/confirm", { code: mfaCode });
-    setBackupCodes(r.backupCodes);
-    setMfaSecret("");
-    setMfaUrl("");
-    setMfaCode("");
-    refreshUser();
+    try {
+      const r = await api.post<{ backupCodes: string[] }>("/auth/mfa/confirm", { code: mfaCode });
+      setBackupCodes(r.backupCodes);
+      setMfaSecret("");
+      setMfaUrl("");
+      setMfaCode("");
+      refreshUser();
+    } catch (err) {
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
+    }
   }
 
   async function disableMfa() {
-    await api.post("/auth/mfa/disable", { code: mfaCode });
-    setMfaCode("");
-    refreshUser();
-    setMessage(t("mfaDisabledMsg"));
+    try {
+      await api.post("/auth/mfa/disable", { code: mfaCode });
+      setMfaCode("");
+      refreshUser();
+      setMessage(t("mfaDisabledMsg"));
+    } catch (err) {
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
+    }
   }
 
   async function exportData() {
-    const data = await api.get<unknown>("/auth/privacy/export");
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "my-data.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const data = await api.get<unknown>("/auth/privacy/export");
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "my-data.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setMessage(translateApiError(err instanceof Error ? err.message : "", t));
+    }
   }
 
   return (
@@ -309,6 +339,7 @@ export default function SettingsPage() {
         title={`${t("deleteOrg")}?`}
         description={current ? `"${current.name}"` : undefined}
         size="sm"
+        closeLabel={t("close")}
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirmDeleteOrg(false)}>

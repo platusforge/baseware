@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/services/api";
 import { Badge, DataTable, PageHeader, SearchBar, StatCard, type Column, type SortDir } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
+import { useDataTableLabels } from "@/i18n/use-data-table-labels";
 import { formatDate } from "@/utils/dates";
 import styles from "./index.module.css";
 
@@ -39,6 +40,7 @@ function sortValue(user: AdminUser, key: string): string | number {
 
 export default function AdminPage() {
   const { t, lang } = useI18n();
+  const tableLabels = useDataTableLabels();
   const [stats, setStats] = useState<{ totalUsers: number } | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [query, setQuery] = useState("");
@@ -150,20 +152,12 @@ export default function AdminPage() {
         caption={t("platformUsers")}
         emptyTitle={t("noUsers")}
         emptyHint={query ? t("searchHint") : t("noUsersHint")}
-        toolbar={<SearchBar value={query} onChange={setQuery} placeholder={t("adminSearch")} debounceMs={200} />}
+        toolbar={<SearchBar value={query} onChange={setQuery} placeholder={t("adminSearch")} debounceMs={200} clearLabel={t("clearSearch")} />}
         columnManager
         storageKey="admin-users-table"
         exportable
         exportFileName="platform-users"
-        labels={{
-          columns: t("columns"),
-          moveUp: t("moveUp"),
-          moveDown: t("moveDown"),
-          reset: t("resetColumns"),
-          export: t("exportExcel"),
-          copy: t("copyCell"),
-          copied: t("copied"),
-        }}
+        labels={tableLabels}
       />
     </div>
   );

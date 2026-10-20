@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/services/api";
-import { friendlyAuthError } from "@/utils/auth-errors";
+import { translateApiError } from "@/utils/api-errors";
 import { Alert, AuthCard, Button, Input } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
 import styles from "./index.module.css";
@@ -23,10 +23,10 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await api.post<{ message: string }>("/auth/register", { email, password, name });
-      setDone(result.message);
+      await api.post("/auth/register", { email, password, name });
+      setDone(t("registerSuccess"));
     } catch (err) {
-      setError(friendlyAuthError(err instanceof Error ? err.message : "", t));
+      setError(translateApiError(err instanceof Error ? err.message : "", t, "registerFailed"));
     } finally {
       setLoading(false);
     }

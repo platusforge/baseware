@@ -3,6 +3,7 @@ import { api } from "@/services/api";
 import { Alert, Button, Checkbox, DataTable, IconButton, Input, Modal, PageHeader, toast } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
 import { useOrganization } from "@/contexts/organization-context";
+import { useDataTableLabels } from "@/i18n/use-data-table-labels";
 import styles from "./index.module.css";
 
 type ApiKey = { id: string; name: string; keyPrefix: string };
@@ -12,6 +13,7 @@ const ALL_SCOPES = ["members:read", "audit:read", "usage:write", "billing:read"]
 export default function ApiKeysPage() {
   const { t } = useI18n();
   const { current } = useOrganization();
+  const tableLabels = useDataTableLabels();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [name, setName] = useState("");
   const [scopes, setScopes] = useState<string[]>(["members:read"]);
@@ -102,6 +104,7 @@ export default function ApiKeysPage() {
         caption={t("apiKeysCaption")}
         emptyTitle={t("noApiKeys")}
         emptyHint={t("createFirstKey")}
+        labels={tableLabels}
         rowActions={(k) => (
           <IconButton label={`${t("revoke")} ${k.name}`} variant="outline" size="md" onClick={() => setRevoking(k)}>
             <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -116,6 +119,7 @@ export default function ApiKeysPage() {
         title={t("revokeTitle")}
         description={revoking ? `"${revoking.name}" ${t("revokeDesc")}` : undefined}
         size="sm"
+        closeLabel={t("close")}
         footer={
           <>
             <Button variant="ghost" onClick={() => setRevoking(null)}>

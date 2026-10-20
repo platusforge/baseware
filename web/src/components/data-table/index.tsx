@@ -3,6 +3,7 @@ import { Skeleton } from "../skeleton";
 import { Button } from "../button";
 import { ColumnManager } from "../column-manager";
 import { toast } from "../toast";
+import { interpolate } from "@/i18n";
 import { copyToClipboard } from "@/utils/clipboard";
 import { exportToExcel } from "@/utils/excel";
 import styles from "./index.module.css";
@@ -30,6 +31,16 @@ export type DataTableLabels = {
   export: string;
   copy: string;
   copied: string;
+  /** Template with {{column}} — interpolated by the table. */
+  sortBy: string;
+  selectAllRows: string;
+  /** Template with {{index}} — interpolated by the table. */
+  selectRow: string;
+  /** Inline label for the selection cell in the mobile card layout. */
+  select: string;
+  actions: string;
+  /** Template with {{count}}, or a function for locale-aware pluralization. */
+  selected: string | ((count: number) => string);
 };
 
 const DEFAULT_LABELS: DataTableLabels = {
@@ -40,6 +51,12 @@ const DEFAULT_LABELS: DataTableLabels = {
   export: "Export",
   copy: "Copy",
   copied: "Copied!",
+  sortBy: "Sort by {{column}}",
+  selectAllRows: "Select all rows",
+  selectRow: "Select row {{index}}",
+  select: "Select",
+  actions: "Actions",
+  selected: "{{count}} selected",
 };
 
 type Props<T> = {
@@ -289,7 +306,7 @@ export function DataTable<T>({
           <tr>
             {selectable && (
               <th className={styles.checkCell}>
-                <input ref={headCheckRef} type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="Select all rows" />
+                <input ref={headCheckRef} type="checkbox" checked={allChecked} onChange={toggleAll} aria-label={L.selectAllRows} />
               </th>
             )}
             {visibleColumns.map((col) => (
@@ -299,7 +316,7 @@ export function DataTable<T>({
                 className={[styles[`align-${col.align ?? "left"}`], col.hideOnMobile ? styles.hideMobile : ""].filter(Boolean).join(" ")}
               >
                 {col.sortable && onSort ? (
-                  <button type="button" className={styles.sortBtn} onClick={() => onSort(col.key)} aria-label={`Sort by ${col.label}`}>
+                  <button type="button" className={styles.sortBtn} onClick={() => onSort(col.key)} aria-label={interpolate(L.sortBy, { column: col.label })}>
                     {col.label}
                     <span aria-hidden="true" className={styles.arrow}>
                       {sort?.key === col.key ? (sort.dir === "asc" ? "▲" : "▼") : "⇅"}
@@ -310,7 +327,7 @@ export function DataTable<T>({
                 )}
               </th>
             ))}
-            {rowActions && <th><span className="sr-only">Actions</span></th>}
+            {rowActions && <th><span className="sr-only">{L.actions}</span></th>}
           </tr>
         </thead>
         <tbody>
@@ -331,12 +348,12 @@ export function DataTable<T>({
                 return (
                   <tr key={key} className={styles.cardRow}>
                     {selectable && (
-                      <td className={styles.checkCell} data-label="Select">
+                      <td className={styles.checkCell} data-label={L.select}>
                         <input
                           type="checkbox"
                           checked={selected.includes(key)}
                           onChange={() => toggleOne(key)}
-                          aria-label={`Select row ${i + 1}`}
+                          aria-label={interpolate(L.selectRow, { index: i + 1 })}
                         />
                       </td>
                     )}
@@ -375,14 +392,16 @@ export function DataTable<T>({
                         </td>
                       );
                     })}
-                    {rowActions && <td data-label="Actions" className={styles.actions}>{rowActions(row)}</td>}
+                    {rowActions && <td data-label={L.actions} className={styles.actions}>{rowActions(row)}</td>}
                   </tr>
                 );
               })}
         </tbody>
       </table>
       {selectable && someChecked && (
-        <p className={styles.selection} role="status">{selected.length} selected</p>
+        <p className={styles.selection} role="status">
+          {typeof L.selected === "function" ? L.selected(selected.length) : interpolate(L.selected, { count: selected.length })}
+        </p>
       )}
       <span className="sr-only">{`Table with ${colCount} columns`}</span>
       </div>

@@ -7,9 +7,11 @@ type Props = {
   placeholder?: string;
   label?: string;
   debounceMs?: number;
+  /** Accessible label for the clear (✕) button. */
+  clearLabel?: string;
 };
 
-export function SearchBar({ value, onChange, placeholder = "Search...", label, debounceMs = 0 }: Props) {
+export function SearchBar({ value, onChange, placeholder = "Search...", label, debounceMs = 0, clearLabel = "Clear search" }: Props) {
   const inputId = useId();
   const [inner, setInner] = useState(value);
   const timer = useRef<number | undefined>(undefined);
@@ -43,7 +45,7 @@ export function SearchBar({ value, onChange, placeholder = "Search...", label, d
         onChange={(e) => handle(e.target.value)}
       />
       {inner && (
-        <button type="button" className={styles.clear} aria-label="Clear search" onClick={() => handle("")}>✕</button>
+        <button type="button" className={styles.clear} aria-label={clearLabel} onClick={() => handle("")}>✕</button>
       )}
     </div>
   );

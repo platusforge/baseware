@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { api } from "@/services/api";
 import { useAuth } from "@/contexts/auth-context";
 import { useI18n } from "@/contexts/i18n-context";
+import { translateApiError } from "@/utils/api-errors";
 import { Alert, AuthCard, Button, Spinner } from "@/components";
 import styles from "./index.module.css";
 
@@ -26,8 +27,7 @@ export default function InvitePage() {
       setAccepted(true);
       setTimeout(() => nav("/dashboard"), 1200);
     } catch (err) {
-      const raw = err instanceof Error ? err.message : "";
-      setError(raw === "Invalid or expired invitation." ? t("inviteInvalid") : raw || t("inviteInvalid"));
+      setError(translateApiError(err instanceof Error ? err.message : "", t, "inviteInvalid"));
     } finally {
       setBusy(false);
     }
