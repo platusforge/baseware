@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api } from "@/services/api";
+import { api, setSessionHint } from "@/services/api";
 import type { IUser } from "@/types/models";
 
 type AuthContextData = {
@@ -21,8 +21,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me = await api.get<IUser>("/auth/me");
       setUser(me);
+      setSessionHint(true);
     } catch {
       setUser(null);
+      setSessionHint(false);
     } finally {
       setLoading(false);
     }
@@ -32,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
     const onUnauthorized = () => {
       setUser(null);
-      if (!window.location.pathname.startsWith("/login")) window.location.href = "/login";
+      if (!window.location.pathname.startsWith("/login")) window.location.href = "/login?expired=1";
     };
     window.addEventListener("unauthorized", onUnauthorized);
     return () => window.removeEventListener("unauthorized", onUnauthorized);
@@ -40,12 +42,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string, mfaCode?: string) => {
     const result = await api.post<{ mustChangePassword?: boolean; emailVerified?: boolean }>("/auth/login", { email, password, mfaCode });
+    setSessionHint(true);
     await refreshUser();
     return result;
   }, [refreshUser]);
 
   const logout = useCallback(async () => {
     await api.post("/auth/logout").catch(() => undefined);
+    setSessionHint(false);
     setUser(null);
   }, []);
 

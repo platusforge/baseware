@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./index.module.css";
+
+const EXIT_MS = 160;
 
 type Props = {
   open: boolean;
@@ -12,6 +14,18 @@ type Props = {
 export function Drawer({ open, onClose, title, side = "left", children }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const prevFocus = useRef<Element | null>(null);
+  const [mounted, setMounted] = useState(open);
+
+  // Keep the panel mounted through the exit animation.
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      return;
+    }
+    if (!mounted) return;
+    const timer = window.setTimeout(() => setMounted(false), EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [open, mounted]);
 
   useEffect(() => {
     if (!open) return;
@@ -29,17 +43,18 @@ export function Drawer({ open, onClose, title, side = "left", children }: Props)
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
+  const closing = !open;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={[styles.overlay, closing ? styles.closing : ""].filter(Boolean).join(" ")} onClick={onClose}>
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={title ?? "Panel"}
         tabIndex={-1}
-        className={[styles.panel, side === "right" ? styles.right : styles.left].filter(Boolean).join(" ")}
+        className={[styles.panel, side === "right" ? styles.right : styles.left, closing ? styles.closing : ""].filter(Boolean).join(" ")}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>

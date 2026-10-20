@@ -15,6 +15,29 @@
   margin-bottom: 16px;
 }
 
+.scopes {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px 14px;
+  margin: 0 0 16px;
+}
+
+.legend {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.scopeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.modalText {
+  margin: 0;
+}
+
 @media (min-width: 640px) {
   .form {
     grid-template-columns: 1fr auto;

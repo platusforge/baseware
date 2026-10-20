@@ -1,0 +1,11 @@
+.transition {
+  min-width: 0;
+  animation: page-in var(--duration-base) var(--ease-out) both;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

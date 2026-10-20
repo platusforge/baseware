@@ -17,6 +17,13 @@
   color: var(--color-text);
 }
 
+/* Kill the native WebKit clear button — the component renders its own. */
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .input:hover:not(:disabled) { border-color: var(--color-border-strong); }
 
 .clear {

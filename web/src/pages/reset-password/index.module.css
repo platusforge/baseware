@@ -1,1 +1,4 @@
-.x { display: none; }
+.form {
+  display: grid;
+  gap: 14px;
+}

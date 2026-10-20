@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/services/api";
-import { Alert, Button, Input } from "@/components";
+import { friendlyAuthError } from "@/utils/auth-errors";
+import { Alert, AuthCard, Button, Input } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
+import styles from "./index.module.css";
 
 export default function RegisterPage() {
   const { t } = useI18n();
+  const [params] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
   const [loading, setLoading] = useState(false);
+  const next = params.get("next");
+  const loginHref = next && next.startsWith("/") && !next.startsWith("//") ? `/login?next=${encodeURIComponent(next)}` : "/login";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,45 +26,48 @@ export default function RegisterPage() {
       const result = await api.post<{ message: string }>("/auth/register", { email, password, name });
       setDone(result.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(friendlyAuthError(err instanceof Error ? err.message : "", t));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="container" style={{ maxWidth: 420, paddingTop: 60 }}>
-      <h1>{t("createAccount")}</h1>
+    <AuthCard
+      title={t("createAccount")}
+      subtitle={t("registerSubtitle")}
+      footer={<>{t("haveAccount")} <Link to={loginHref}>{t("login")}</Link></>}
+    >
       {done ? (
         <Alert variant="success">
-          {done} <Link to="/login">{t("login")}</Link>
+          {done} <Link to={loginHref}>{t("login")}</Link>
         </Alert>
       ) : (
-        <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
+        <form onSubmit={submit} className={styles.form}>
           <Input label={t("name")} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
           <Input label={t("email")} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
           <Input
             label={t("newPassword")}
+            hint={t("resetConfirmSubtitle")}
             autoComplete="new-password"
             type="password"
             required
             minLength={12}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            revealLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           {error && (
             <Alert variant="danger" role="alert">
               {error}
             </Alert>
           )}
-          <Button type="submit" loading={loading}>
+          <Button type="submit" loading={loading} fullWidth>
             {t("register")}
           </Button>
         </form>
       )}
-      <p>
-        <Link to="/login">{t("backToLogin")}</Link>
-      </p>
-    </div>
+    </AuthCard>
   );
 }

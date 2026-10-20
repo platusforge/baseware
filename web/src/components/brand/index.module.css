@@ -1,0 +1,41 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--color-text);
+}
+
+.mark {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: inline-flex;
+  border-radius: 9px;
+  box-shadow: var(--shadow-sm);
+}
+
+.name {
+  max-width: 200px;
+  font-weight: 700;
+  font-size: var(--text-md);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    max-width var(--duration-slow) var(--ease-smooth),
+    opacity 160ms var(--ease-smooth) 70ms,
+    margin-left var(--duration-slow) var(--ease-smooth);
+}
+
+/* Collapsed rail: the wordmark slides/fades out; the -gap margin keeps the mark centered. */
+.collapsed .name {
+  max-width: 0;
+  opacity: 0;
+  margin-left: -10px;
+  transition:
+    max-width var(--duration-slow) var(--ease-smooth),
+    opacity 110ms var(--ease-smooth),
+    margin-left var(--duration-slow) var(--ease-smooth);
+}

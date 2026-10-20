@@ -38,6 +38,9 @@
 .danger { background: var(--color-danger); color: var(--color-on-primary); }
 .danger:hover:not(:disabled) { background: var(--color-danger-hover); }
 
+.danger-outline { background: transparent; color: var(--color-danger); border-color: var(--color-danger); }
+.danger-outline:hover:not(:disabled) { background: var(--color-danger-soft); }
+
 .full { width: 100%; }
 
 .loader {

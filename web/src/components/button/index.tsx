@@ -1,6 +1,7 @@
+import { forwardRef } from "react";
 import styles from "./index.module.css";
 
-export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "danger-outline";
 export type ButtonSize = "sm" | "md" | "lg";
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -10,18 +11,13 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   fullWidth?: boolean;
 };
 
-export function Button({
-  variant = "primary",
-  size = "md",
-  loading = false,
-  fullWidth = false,
-  disabled,
-  className,
-  children,
-  ...rest
-}: Props) {
+export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
+  { variant = "primary", size = "md", loading = false, fullWidth = false, disabled, className, children, ...rest },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       className={[styles.btn, styles[variant], styles[size], fullWidth ? styles.full : "", className ?? ""].filter(Boolean).join(" ")}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
@@ -31,4 +27,4 @@ export function Button({
       {children}
     </button>
   );
-}
+})

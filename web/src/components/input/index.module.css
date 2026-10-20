@@ -2,6 +2,8 @@
 
 .label { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); }
 
+.control { position: relative; display: grid; }
+
 .input {
   width: 100%;
   min-height: var(--touch-target);
@@ -16,6 +18,29 @@
 .input::placeholder { color: var(--color-text-muted); }
 .input:hover:not(:disabled) { border-color: var(--color-border-strong); }
 .input:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.hasToggle { padding-right: 48px; }
+
+.toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+
+.toggle:hover { color: var(--color-text); background: var(--color-surface); }
+.toggle svg { width: 18px; height: 18px; }
 
 .invalid { border-color: var(--color-danger); }
 .invalid:focus { box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-danger); }

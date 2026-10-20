@@ -1,13 +1,16 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useI18n } from "@/contexts/i18n-context";
 import { Spinner } from "@/components";
+import styles from "./guards.module.css";
 
 export function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { signed, loading } = useAuth();
+  const { t } = useI18n();
   if (loading)
     return (
-      <div role="status" aria-live="polite" style={{ padding: 24 }}>
-        <Spinner label="Loading..." />
+      <div className={styles.loading} role="status" aria-live="polite">
+        <Spinner label={t("loading")} size="lg" />
       </div>
     );
   if (!signed) return <Navigate to="/login" replace />;

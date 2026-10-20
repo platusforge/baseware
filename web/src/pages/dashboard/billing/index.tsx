@@ -1,12 +1,21 @@
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
-import { Alert, Button, DataTable, PageHeader, Spinner } from "@/components";
+import { Alert, Badge, Button, DataTable, PageHeader, Spinner } from "@/components";
 import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
+import type { BadgeVariant } from "@/components";
+import { formatDate } from "@/utils/dates";
 import styles from "./index.module.css";
 
 type Status = { plan: string; status: string; trialEndsAt?: string | null };
 type Invoice = { id: string; amount: number; currency: string; status: string; created: number; pdfUrl: string | null };
+
+function invoiceVariant(status: string): BadgeVariant {
+  if (status === "paid") return "success";
+  if (status === "open" || status === "draft") return "warning";
+  if (status === "void" || status === "uncollectible") return "danger";
+  return "default";
+}
 
 export default function BillingPage() {
   const { current } = useOrganization();
@@ -62,7 +71,10 @@ export default function BillingPage() {
 
   return (
     <div>
-      <PageHeader title={t("billing")} subtitle={status ? `${status.plan} · ${status.status}` : undefined} />
+      <PageHeader
+        title={t("billing")}
+        subtitle={status ? `${status.plan} · ${status.status}` : current ? `${t("billingSubtitle")}: ${current.plan}` : undefined}
+      />
       {error && (
         <Alert variant="danger" role="alert">
           {error}
@@ -70,8 +82,7 @@ export default function BillingPage() {
       )}
       {trialActive && (
         <Alert variant="info" title={t("trialActive")}>
-          Starter trial ends {new Date(status.trialEndsAt as string).toLocaleDateString(lang)}. Add a payment method to keep
-          Pro features.
+          {t("trialEnds")} {formatDate(status.trialEndsAt as string, lang)}. {t("trialEndsHint")}
         </Alert>
       )}
       <div className={styles.actions}>
@@ -85,45 +96,51 @@ export default function BillingPage() {
           {busy === "portal" ? t("loading") : t("portal")}
         </Button>
       </div>
-      <h3>{t("invoices")}</h3>
+      <h2 className={styles.sectionTitle}>{t("invoices")}</h2>
       {loading ? (
         <Spinner label={t("loading")} />
       ) : (
-        <div className={styles.tableScroll}>
-          <DataTable
-            columns={[
-              { key: "id", label: "ID", render: (r) => `${r.id.slice(0, 12)}…` },
-              {
-                key: "amount",
-                label: "Amount",
-                render: (r) => `${(r.amount / 100).toFixed(2)} ${r.currency.toUpperCase()}`,
-              },
-              { key: "status", label: "Status" },
-              {
-                key: "created",
-                label: "Date",
-                render: (r) => new Date(r.created * 1000).toLocaleDateString(lang),
-              },
-              {
-                key: "pdfUrl",
-                label: "PDF",
-                render: (r) =>
-                  r.pdfUrl ? (
-                    <a href={r.pdfUrl} target="_blank" rel="noreferrer" aria-label={`Invoice ${r.id} PDF`}>
-                      PDF
-                    </a>
-                  ) : (
-                    "—"
-                  ),
-              },
-            ]}
-            data={invoices}
-            keyOf={(r) => r.id}
-            caption={t("invoices")}
-            emptyTitle={t("noInvoices")}
-            responsive="scroll"
-          />
-        </div>
+        <DataTable
+          columns={[
+            { key: "id", label: t("invoiceId"), render: (r) => `${r.id.slice(0, 12)}…` },
+            {
+              key: "amount",
+              label: t("amount"),
+              render: (r) =>
+                new Intl.NumberFormat(lang === "pt-BR" ? "pt-BR" : "en-US", {
+                  style: "currency",
+                  currency: r.currency.toUpperCase(),
+                }).format(r.amount / 100),
+            },
+            {
+              key: "status",
+              label: t("status"),
+              render: (r) => <Badge variant={invoiceVariant(r.status)}>{r.status}</Badge>,
+            },
+            {
+              key: "created",
+              label: t("date"),
+              render: (r) => formatDate(new Date(r.created * 1000), lang),
+            },
+            {
+              key: "pdfUrl",
+              label: "PDF",
+              render: (r) =>
+                r.pdfUrl ? (
+                  <a href={r.pdfUrl} target="_blank" rel="noreferrer" aria-label={`${t("invoiceId")} ${r.id} PDF`}>
+                    PDF
+                  </a>
+                ) : (
+                  "—"
+                ),
+            },
+          ]}
+          data={invoices}
+          keyOf={(r) => r.id}
+          caption={t("invoices")}
+          emptyTitle={t("noInvoices")}
+          responsive="scroll"
+        />
       )}
     </div>
   );

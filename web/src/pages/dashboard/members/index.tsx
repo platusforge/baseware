@@ -48,7 +48,7 @@ export default function MembersPage() {
       { key: "email", label: t("email"), sortable: true },
       {
         key: "role",
-        label: "Role",
+        label: t("role"),
         sortable: true,
         render: (m) => (
           <Badge variant={ROLE_VARIANT[m.role] ?? "default"} dot>
@@ -100,9 +100,9 @@ export default function MembersPage() {
         sort={sort}
         onSort={handleSort}
         loading={loading}
-        caption="Organization members"
+        caption={t("organizationMembers")}
         emptyTitle={t("noMembers")}
-        emptyHint={query ? "Try a different search." : t("inviteHint")}
+        emptyHint={query ? t("searchHint") : t("inviteHint")}
       />
     </div>
   );

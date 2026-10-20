@@ -1,25 +1,71 @@
 .overlay {
-  position: fixed; inset: 0; z-index: 60;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
   background: var(--color-overlay);
+  animation: overlay-in var(--duration-fast) var(--ease-out);
+}
+
+.overlay.closing {
+  animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
+  pointer-events: none;
 }
 
 .panel {
-  position: fixed; top: 0; bottom: 0;
+  position: fixed;
+  top: 0;
+  bottom: 0;
   width: min(320px, 88vw);
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
+  animation: drawer-in var(--duration-base) var(--ease-out);
 }
 
-.left { left: 0; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
-.right { right: 0; border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+.panel.closing {
+  animation: drawer-out var(--duration-fast) var(--ease-out) forwards;
+}
+
+.left {
+  --drawer-offset: -100%;
+  left: 0;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.right {
+  --drawer-offset: 100%;
+  right: 0;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+/* The panel is focused on open for a11y context — keep it visually neutral. */
+.panel:focus-visible { outline: none; box-shadow: none; }
+.panel:focus-visible.left { border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+.panel:focus-visible.right { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+}
+
+@keyframes overlay-out {
+  to { opacity: 0; }
+}
+
+@keyframes drawer-in {
+  from { transform: translateX(var(--drawer-offset)); }
+}
+
+@keyframes drawer-out {
+  to { transform: translateX(var(--drawer-offset)); }
+}
 
 .header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px; border-bottom: 1px solid var(--color-border); }
 .title { margin: 0; font-size: var(--text-md); }
 
 .close {
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   display: inline-flex; align-items: center; justify-content: center;
   border: 0; border-radius: var(--radius-sm);
   background: transparent; color: var(--color-text-secondary);

@@ -1,27 +1,40 @@
 import { Link } from "react-router-dom";
+import { SiteLayout } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
 import { useSeo } from "@/utils/seo";
+import { formatDate } from "@/utils/dates";
 import { POSTS } from "./posts";
+import styles from "./index.module.css";
 
 export default function BlogPage() {
-  const { lang } = useI18n();
-  useSeo("Blog — SaaS Boilerplate", "Notes on multi-tenant billing, auth sessions and shipping with AI.");
+  const { t, lang } = useI18n();
+  useSeo("Blog — SaaS Boilerplate", t("blogSubtitle"));
+
   return (
-    <div className="container" style={{ paddingTop: 40, paddingBottom: 60 }}>
-      <p><Link to="/">← Home</Link></p>
-      <h1>Blog</h1>
-      <div style={{ display: "grid", gap: 16 }}>
+    <SiteLayout>
+      <header className={styles.head}>
+        <h1>Blog</h1>
+        <p>{t("blogSubtitle")}</p>
+      </header>
+      <div className={styles.list}>
         {POSTS.map((post) => {
           const content = lang === "pt-BR" ? post.pt : post.en;
           return (
-            <article key={post.slug} className="card">
-              <small>{post.date}</small>
-              <h2 style={{ margin: "4px 0" }}><Link to={`/blog/${post.slug}`}>{content.title}</Link></h2>
-              <p>{content.excerpt}</p>
+            <article key={post.slug} className={styles.card}>
+              <time dateTime={post.date} className={styles.date}>
+                {formatDate(post.date, lang)}
+              </time>
+              <h2 className={styles.title}>
+                <Link to={`/blog/${post.slug}`}>{content.title}</Link>
+              </h2>
+              <p className={styles.excerpt}>{content.excerpt}</p>
+              <span className={styles.more} aria-hidden="true">
+                {t("readMore")} →
+              </span>
             </article>
           );
         })}
       </div>
-    </div>
+    </SiteLayout>
   );
 }

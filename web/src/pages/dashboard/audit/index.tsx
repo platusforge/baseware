@@ -3,9 +3,10 @@ import { api } from "@/services/api";
 import { Badge, DataTable, PageHeader, SearchBar } from "@/components";
 import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
+import { formatDateTime } from "@/utils/dates";
 import styles from "./index.module.css";
 
-type AuditRow = { action: string; createdAt: string };
+type AuditRow = { id: string; action: string; createdAt: string };
 
 function variantFor(action: string): "danger" | "warning" | "success" | "default" {
   if (/delete|cancel|revoke|fail/i.test(action)) return "danger";
@@ -16,7 +17,7 @@ function variantFor(action: string): "danger" | "warning" | "success" | "default
 
 export default function AuditPage() {
   const { current } = useOrganization();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,7 @@ export default function AuditPage() {
 
   return (
     <div>
-      <PageHeader title={t("auditLog")} subtitle={current ? `Activity in ${current.name}` : undefined} />
+      <PageHeader title={t("auditLog")} subtitle={current ? `${t("activityIn")} ${current.name}` : undefined} />
       <div className={styles.toolbar}>
         <SearchBar value={query} onChange={setQuery} placeholder={t("filterActions")} debounceMs={200} />
       </div>
@@ -46,17 +47,22 @@ export default function AuditPage() {
         columns={[
           {
             key: "action",
-            label: "Action",
+            label: t("action"),
             render: (r) => <Badge variant={variantFor(r.action)}>{r.action}</Badge>,
           },
-          { key: "createdAt", label: "At", hideOnMobile: true },
+          {
+            key: "createdAt",
+            label: t("when"),
+            hideOnMobile: true,
+            render: (r) => formatDateTime(r.createdAt, lang),
+          },
         ]}
         data={filtered}
-        keyOf={(_, i) => `${i}`}
+        keyOf={(r) => r.id}
         loading={loading}
         caption={t("auditLog")}
         emptyTitle={t("noActivity")}
-        emptyHint={query ? "Try a different filter." : t("auditHint")}
+        emptyHint={query ? t("filterHint") : t("auditHint")}
       />
     </div>
   );

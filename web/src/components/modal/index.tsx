@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./index.module.css";
+
+const EXIT_MS = 160;
 
 type Props = {
   open: boolean;
@@ -14,6 +16,18 @@ type Props = {
 export function Modal({ open, onClose, title, description, size = "md", footer, children }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const prevFocus = useRef<Element | null>(null);
+  const [mounted, setMounted] = useState(open);
+
+  // Keep the dialog mounted through the exit animation.
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      return;
+    }
+    if (!mounted) return;
+    const timer = window.setTimeout(() => setMounted(false), EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [open, mounted]);
 
   useEffect(() => {
     if (!open) return;
@@ -31,17 +45,18 @@ export function Modal({ open, onClose, title, description, size = "md", footer, 
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
+  const closing = !open;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={[styles.overlay, closing ? styles.closing : ""].filter(Boolean).join(" ")} onClick={onClose}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={[styles.dialog, styles[size]].filter(Boolean).join(" ")}
+        className={[styles.dialog, styles[size], closing ? styles.closing : ""].filter(Boolean).join(" ")}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>

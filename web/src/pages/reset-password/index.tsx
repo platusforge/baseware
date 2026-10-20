@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/services/api";
-import { Input, Button, Alert } from "@/components";
+import { friendlyAuthError } from "@/utils/auth-errors";
+import { Input, Button, Alert, AuthCard } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
+import styles from "./index.module.css";
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -22,7 +24,7 @@ export default function ResetPasswordPage() {
       const r = await api.post<{ message: string }>("/auth/reset/request", { email });
       setDone(r.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(friendlyAuthError(err instanceof Error ? err.message : "", t));
     } finally {
       setLoading(false);
     }
@@ -36,46 +38,54 @@ export default function ResetPasswordPage() {
       const r = await api.post<{ message: string }>("/auth/reset/confirm", { token, password });
       setDone(r.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("resetInvalid"));
+      const raw = err instanceof Error ? err.message : "";
+      setError(raw === "Invalid or expired token." ? t("resetInvalid") : friendlyAuthError(raw, t));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="container" style={{ maxWidth: 420, paddingTop: 60 }}>
-      <h1>{token ? t("resetTitleConfirm") : t("resetTitle")}</h1>
+    <AuthCard
+      title={token ? t("resetTitleConfirm") : t("resetTitle")}
+      subtitle={token ? t("resetConfirmSubtitle") : t("resetSubtitle")}
+      footer={<Link to="/login">{t("backToLogin")}</Link>}
+    >
       {done ? (
         <Alert variant="success">
           {done} <Link to="/login">{t("login")}</Link>
         </Alert>
       ) : token ? (
-        <form onSubmit={confirmReset} style={{ display: "grid", gap: 12 }}>
+        <form onSubmit={confirmReset} className={styles.form}>
           <Input
             label={t("newPassword")}
             type="password"
             autoComplete="new-password"
             required
             minLength={12}
+            autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            revealLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           {error && (
             <Alert variant="danger" role="alert">
               {error}
             </Alert>
           )}
-          <Button type="submit" disabled={loading}>
-            {loading ? t("loading") : t("resetConfirm")}
+          <Button type="submit" loading={loading} fullWidth>
+            {t("resetConfirm")}
           </Button>
         </form>
       ) : (
-        <form onSubmit={requestLink} style={{ display: "grid", gap: 12 }}>
+        <form onSubmit={requestLink} className={styles.form}>
           <Input
             label={t("email")}
             type="email"
             autoComplete="username"
             required
+            autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -84,14 +94,11 @@ export default function ResetPasswordPage() {
               {error}
             </Alert>
           )}
-          <Button type="submit" disabled={loading}>
-            {loading ? t("loading") : t("resetSend")}
+          <Button type="submit" loading={loading} fullWidth>
+            {t("resetSend")}
           </Button>
         </form>
       )}
-      <p>
-        <Link to="/login">{t("backToLogin")}</Link>
-      </p>
-    </div>
+    </AuthCard>
   );
 }

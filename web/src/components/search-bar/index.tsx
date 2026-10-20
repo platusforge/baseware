@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import styles from "./index.module.css";
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
 };
 
 export function SearchBar({ value, onChange, placeholder = "Search...", label, debounceMs = 0 }: Props) {
+  const inputId = useId();
   const [inner, setInner] = useState(value);
   const timer = useRef<number | undefined>(undefined);
 
@@ -28,12 +29,12 @@ export function SearchBar({ value, onChange, placeholder = "Search...", label, d
 
   return (
     <div className={styles.wrap} role="search">
-      {label && <label className="sr-only" htmlFor="app-search">{label}</label>}
+      {label && <label className="sr-only" htmlFor={inputId}>{label}</label>}
       <svg className={styles.icon} viewBox="0 0 20 20" aria-hidden="true">
         <path d="M8.5 3a5.5 5.5 0 104.4 8.8l3 3 1.4-1.4-3-3A5.5 5.5 0 008.5 3zm0 2a3.5 3.5 0 110 7 3.5 3.5 0 010-7z" fill="currentColor" />
       </svg>
       <input
-        id="app-search"
+        id={inputId}
         className={styles.input}
         type="search"
         value={inner}

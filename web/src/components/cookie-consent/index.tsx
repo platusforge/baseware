@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useI18n } from "@/contexts/i18n-context";
+import { Button } from "@/components/button";
 import styles from "./index.module.css";
 
 export function CookieConsent() {
@@ -27,19 +29,19 @@ export function CookieConsent() {
   }
 
   return (
-    <div role="dialog" aria-label="Cookie consent" aria-live="polite" className={`card ${styles.banner}`}>
+    <div role="dialog" aria-label="Cookie consent" aria-live="polite" className={styles.banner}>
       <strong>{t("consentTitle")}</strong>
       <p>{t("consentBody")}</p>
       <div className={styles.actions}>
-        <button type="button" className="btn" onClick={() => choose("granted")}>
+        <Button size="sm" onClick={() => choose("granted")}>
           {t("accept")}
-        </button>
-        <button type="button" className="btn btn--ghost" onClick={() => choose("denied")}>
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => choose("denied")}>
           {t("decline")}
-        </button>
-        <a className="btn btn--ghost" href="/privacy">
+        </Button>
+        <Link className={styles.link} to="/privacy">
           {t("privacy")}
-        </a>
+        </Link>
       </div>
     </div>
   );

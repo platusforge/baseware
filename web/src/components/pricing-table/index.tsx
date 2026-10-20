@@ -39,11 +39,13 @@ export function PricingTable() {
   }, []);
 
   async function subscribe(plan: string) {
-    if (plan === "free" || busy) return;
+    if (busy) return;
     if (!current) {
+      // Anonymous visitor: start at the signup step.
       window.location.href = "/register";
       return;
     }
+    if (plan === "free" || current.plan === plan) return;
     setBusy(plan);
     setError("");
     try {
@@ -57,30 +59,41 @@ export function PricingTable() {
 
   return (
     <div>
-      <p>{t("trial")}</p>
+      <p className={styles.trial}>{t("trial")}</p>
       {error && (
         <Alert variant="danger" role="alert">
           {error}
         </Alert>
       )}
       {loading ? (
-        <Spinner label={t("loading")} />
+        <div className={styles.loading}>
+          <Spinner label={t("loading")} />
+        </div>
       ) : (
         <div className={styles.grid}>
-          {plans.map((p) => (
-            <div key={p.id} className={`card ${styles.card}`}>
-              <h3>{p.name}</h3>
-              <p className={styles.price}>{priceLabel(p)}</p>
-              <ul className={styles.features}>
-                {p.features.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-              <Button type="button" disabled={busy !== null} loading={busy === p.id} className={styles.cta} onClick={() => subscribe(p.id)}>
-                {t("choose")} {p.name}
-              </Button>
-            </div>
-          ))}
+          {plans.map((p) => {
+            const isCurrent = current?.plan === p.id;
+            return (
+              <div key={p.id} className={[styles.card, p.id === "pro" ? styles.featured : ""].filter(Boolean).join(" ")}>
+                <h3 className={styles.planName}>{p.name}</h3>
+                <p className={styles.price}>{priceLabel(p)}</p>
+                <ul className={styles.features}>
+                  {p.features.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+                <Button
+                  type="button"
+                  disabled={busy !== null || isCurrent}
+                  loading={busy === p.id}
+                  className={styles.cta}
+                  onClick={() => subscribe(p.id)}
+                >
+                  {isCurrent ? t("currentPlan") : `${t("choose")} ${p.name}`}
+                </Button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

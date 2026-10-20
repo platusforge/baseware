@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
-import { Alert, Button, DataTable, IconButton, Input, Modal, PageHeader, toast } from "@/components";
+import { Alert, Button, Checkbox, DataTable, IconButton, Input, Modal, PageHeader, toast } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
 import { useOrganization } from "@/contexts/organization-context";
 import styles from "./index.module.css";
@@ -76,14 +76,11 @@ export default function ApiKeysPage() {
         <Input label={t("newKeyName")} placeholder="ci-deploy" value={name} onChange={(e) => setName(e.target.value)} />
         <Button type="submit">{t("create")}</Button>
       </form>
-      <fieldset style={{ marginBottom: 16 }}>
-        <legend>Scopes</legend>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <fieldset className={styles.scopes}>
+        <legend className={styles.legend}>{t("scopes")}</legend>
+        <div className={styles.scopeGrid}>
           {ALL_SCOPES.map((s) => (
-            <label key={s} style={{ display: "flex", gap: 6, alignItems: "center", minHeight: 44 }}>
-              <input type="checkbox" checked={scopes.includes(s)} onChange={() => toggleScope(s)} />
-              <code>{s}</code>
-            </label>
+            <Checkbox key={s} label={<code>{s}</code>} checked={scopes.includes(s)} onChange={() => toggleScope(s)} />
           ))}
         </div>
       </fieldset>
@@ -97,12 +94,12 @@ export default function ApiKeysPage() {
       <DataTable
         columns={[
           { key: "name", label: t("name"), sortable: true },
-          { key: "keyPrefix", label: "Prefix" },
+          { key: "keyPrefix", label: t("prefix") },
         ]}
         data={[...keys].sort((a, b) => a.name.localeCompare(b.name))}
         keyOf={(k) => k.id}
         loading={loading}
-        caption="API keys"
+        caption={t("apiKeysCaption")}
         emptyTitle={t("noApiKeys")}
         emptyHint={t("createFirstKey")}
         rowActions={(k) => (
@@ -130,7 +127,7 @@ export default function ApiKeysPage() {
           </>
         }
       >
-        <p style={{ margin: 0 }}>{t("revokeWarn")}</p>
+        <p className={styles.modalText}>{t("revokeWarn")}</p>
       </Modal>
     </div>
   );

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/services/api";
-import { Alert, Spinner } from "@/components";
+import { Alert, AuthCard, Spinner } from "@/components";
 import { useI18n } from "@/contexts/i18n-context";
+import styles from "./index.module.css";
 
 export default function VerifyEmailPage() {
   const [params] = useSearchParams();
@@ -22,9 +23,12 @@ export default function VerifyEmailPage() {
   }, [params]);
 
   return (
-    <div className="container" style={{ maxWidth: 420, paddingTop: 60 }}>
-      <h1>{t("verifyEmail")}</h1>
-      {status === "pending" && <Spinner label={t("verifying")} />}
+    <AuthCard title={t("verifyEmail")} subtitle={t("verifySubtitle")} footer={<Link to="/login">{t("backToLogin")}</Link>}>
+      {status === "pending" && (
+        <div className={styles.loading}>
+          <Spinner label={t("verifying")} />
+        </div>
+      )}
       {status === "ok" && (
         <Alert variant="success">
           {t("emailVerified")} <Link to="/login">{t("login")}</Link>
@@ -35,6 +39,6 @@ export default function VerifyEmailPage() {
           {t("emailInvalid")} <Link to="/login">{t("backToLogin")}</Link>
         </Alert>
       )}
-    </div>
+    </AuthCard>
   );
 }

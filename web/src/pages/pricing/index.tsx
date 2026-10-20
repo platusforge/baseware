@@ -1,10 +1,19 @@
-import { PricingTable } from "@/components";
+import { PricingTable, SiteLayout } from "@/components";
+import { useI18n } from "@/contexts/i18n-context";
+import { useSeo } from "@/utils/seo";
+import styles from "./index.module.css";
 
 export default function PricingPage() {
+  const { t } = useI18n();
+  useSeo("Pricing — SaaS Boilerplate", t("pricingSubtitle"));
+
   return (
-    <div className="container" style={{ paddingTop: 40 }}>
-      <h1>Pricing</h1>
+    <SiteLayout width="lg">
+      <header className={styles.head}>
+        <h1>{t("pricing")}</h1>
+        <p>{t("pricingSubtitle")}</p>
+      </header>
       <PricingTable />
-    </div>
+    </SiteLayout>
   );
 }

@@ -10,10 +10,9 @@
   min-height: var(--touch-target);
 }
 
-.tableScroll {
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: var(--text-lg);
 }
 
 @media (min-width: 640px) {

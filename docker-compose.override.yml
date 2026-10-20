@@ -28,4 +28,6 @@ services:
     volumes:
       - ./web:/app/web
       - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=1
     ports: ["5173:5173"]

@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/services/api";
-import { Alert, Button, Input, Modal, PageHeader } from "@/components";
+import { Alert, Badge, Button, Card, Input, Modal, PageHeader } from "@/components";
 import { useAuth } from "@/contexts/auth-context";
 import { useOrganization } from "@/contexts/organization-context";
 import { useI18n } from "@/contexts/i18n-context";
+import { formatDateTime } from "@/utils/dates";
 import styles from "./index.module.css";
 
 export default function SettingsPage() {
   const nav = useNavigate();
   const { user, logout, refreshUser } = useAuth();
   const { current, reload } = useOrganization();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -45,7 +46,7 @@ export default function SettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Error");
+      setMessage(err instanceof Error ? err.message : t("genericError"));
     }
   }
 
@@ -64,7 +65,7 @@ export default function SettingsPage() {
       await logout();
       nav("/login");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Error");
+      setMessage(err instanceof Error ? err.message : t("genericError"));
     }
   }
 
@@ -118,28 +119,34 @@ export default function SettingsPage() {
         </Alert>
       )}
 
-      <div className={`card ${styles.card}`}>
-        <h3>{t("profile")}</h3>
-        <p>
-          {user?.email} {user?.emailVerifiedAt ? `(${t("verified")})` : `(${t("unverifiedLabel")})`}
+      <Card className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("profile")}</h2>
+        <p className={styles.value}>
+          {user?.email}{" "}
+          <Badge variant={user?.emailVerifiedAt ? "success" : "warning"}>
+            {user?.emailVerifiedAt ? t("verified") : t("unverifiedLabel")}
+          </Badge>
         </p>
         {!user?.emailVerifiedAt && (
-          <Button variant="ghost" onClick={resendVerification}>
-            {t("resendVerification")}
-          </Button>
+          <div className={styles.actions}>
+            <Button variant="secondary" onClick={resendVerification}>
+              <MailIcon />
+              {t("resendVerification")}
+            </Button>
+          </div>
         )}
-      </div>
+      </Card>
 
-      <div className={`card ${styles.card}`}>
-        <h3>{t("newOrg")}</h3>
+      <Card className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("newOrg")}</h2>
         <div className={styles.row}>
           <Input label={t("orgName")} value={name} onChange={(e) => setName(e.target.value)} />
           <Button onClick={createOrg}>{t("create")}</Button>
         </div>
-      </div>
+      </Card>
 
-      <div className={`card ${styles.card}`}>
-        <h3>{t("changePassword")}</h3>
+      <Card className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("changePassword")}</h2>
         {user?.mustChangePassword && (
           <Alert variant="danger" role="alert">
             {t("mustChangePassword")}
@@ -153,6 +160,8 @@ export default function SettingsPage() {
             required
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
+            revealLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           <Input
             label={t("newPassword")}
@@ -162,29 +171,35 @@ export default function SettingsPage() {
             minLength={12}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+            revealLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           <Button type="submit">{t("updatePassword")}</Button>
         </form>
-      </div>
+      </Card>
 
-      <div className={`card ${styles.card}`}>
-        <h3>{t("mfa")}</h3>
-        <p>
-          {t("mfaStatus")}: {user?.mfaEnabled ? t("enabled") : t("disabled")}
+      <Card className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("mfa")}</h2>
+        <p className={styles.value}>
+          {t("mfaStatus")}:{" "}
+          <Badge variant={user?.mfaEnabled ? "success" : "default"}>{user?.mfaEnabled ? t("enabled") : t("disabled")}</Badge>
         </p>
         {!user?.mfaEnabled && !mfaSecret && (
-          <Button type="button" variant="ghost" onClick={setupMfa}>
-            {t("startMfa")}
-          </Button>
+          <div className={styles.actions}>
+            <Button type="button" variant="secondary" onClick={setupMfa}>
+              <ShieldIcon />
+              {t("startMfa")}
+            </Button>
+          </div>
         )}
         {mfaSecret && (
           <div className={styles.form}>
-            <p>Scan in your authenticator or enter manually:</p>
-            <code style={{ overflowWrap: "anywhere" }}>{mfaSecret}</code>
-            <p style={{ overflowWrap: "anywhere" }}>
+            <p className={styles.value}>{t("mfaScan")}</p>
+            <code className={styles.code}>{mfaSecret}</code>
+            <p className={styles.break}>
               <small>{mfaUrl}</small>
             </p>
-            <Input label="6-digit code" inputMode="numeric" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} />
+            <Input label={t("mfaCodeLabel")} inputMode="numeric" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} />
             <Button type="button" onClick={confirmMfa}>
               {t("confirmEnable")}
             </Button>
@@ -192,8 +207,8 @@ export default function SettingsPage() {
         )}
         {backupCodes.length > 0 && (
           <div>
-            <p>Backup codes (save once):</p>
-            <ul>
+            <p className={styles.value}>{t("backupCodesTitle")}</p>
+            <ul className={styles.codes}>
               {backupCodes.map((c) => (
                 <li key={c}>
                   <code>{c}</code>
@@ -204,72 +219,89 @@ export default function SettingsPage() {
         )}
         {user?.mfaEnabled && (
           <div className={styles.row}>
-            <Input label="code or backup code" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} />
-            <Button type="button" variant="ghost" onClick={disableMfa}>
+            <Input label={t("backupCodeLabel")} value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} />
+            <Button type="button" variant="danger-outline" onClick={disableMfa}>
               {t("disableMfa")}
             </Button>
           </div>
         )}
-      </div>
+      </Card>
 
-      <div className={`card ${styles.card}`}>
-        <h3>{t("sessions")}</h3>
-        <Button type="button" variant="ghost" onClick={loadSessions}>
-          {t("loadSessions")}
-        </Button>
-        <ul>
+      <Card className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("sessions")}</h2>
+        <div className={styles.actions}>
+          <Button type="button" variant="secondary" onClick={loadSessions}>
+            <RefreshIcon />
+            {t("loadSessions")}
+          </Button>
+        </div>
+        <ul className={styles.sessions}>
           {sessions.map((s) => (
-            <li key={s.id}>
-              {new Date(s.createdAt).toLocaleString()} · {s.revokedAt ? "revoked" : "active"}{" "}
-              <Button type="button" variant="ghost" size="sm" onClick={() => api.del(`/auth/sessions/${s.id}`).then(loadSessions)}>
+            <li key={s.id} className={styles.session}>
+              <span className={styles.value}>
+                {formatDateTime(s.createdAt, lang)}{" "}
+                <Badge variant={s.revokedAt ? "danger" : "success"}>{s.revokedAt ? t("revoked") : t("active")}</Badge>
+              </span>
+              <Button
+                type="button"
+                variant="danger-outline"
+                size="sm"
+                onClick={() => api.del(`/auth/sessions/${s.id}`).then(loadSessions)}
+              >
                 {t("revoke")}
               </Button>
             </li>
           ))}
         </ul>
-      </div>
+      </Card>
 
-      <div className={`card ${styles.card}`}>
-        <h3>Privacy</h3>
-        <Button type="button" variant="ghost" onClick={exportData}>
-          {t("exportData")} (JSON)
-        </Button>
-      </div>
+      <Card className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("privacy")}</h2>
+        <div className={styles.actions}>
+          <Button type="button" variant="secondary" onClick={exportData}>
+            <DownloadIcon />
+            {t("exportData")} (JSON)
+          </Button>
+        </div>
+      </Card>
 
-      <div className={`card ${styles.card}`}>
-        <h3>{t("dangerZone")}</h3>
-        <div className={styles.form}>
-          <div>
-            <Button variant="ghost" onClick={() => setConfirmDeleteOrg(true)}>
-              {t("deleteOrg")} {current?.name ?? ""}
+      <Card className={`${styles.card} ${styles.dangerCard}`}>
+        <h2 className={styles.cardTitle}>{t("dangerZone")}</h2>
+        <div className={styles.actions}>
+          <Button variant="danger-outline" onClick={() => setConfirmDeleteOrg(true)}>
+            <TrashIcon />
+            {t("deleteOrg")} {current?.name ?? ""}
+          </Button>
+          {!confirmDelete && (
+            <Button variant="danger-outline" onClick={() => setConfirmDelete(true)}>
+              <TrashIcon />
+              {t("deleteAccount")}
             </Button>
-          </div>
-          {!confirmDelete ? (
-            <div>
-              <Button variant="ghost" onClick={() => setConfirmDelete(true)}>
-                {t("deleteAccount")}
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={deleteAccountWithPassword} className={styles.form}>
-              <p>This is permanent. Confirm with your password (OAuth-only accounts: leave empty and press delete).</p>
-              <Input
-                label={t("password")}
-                type="password"
-                autoComplete="current-password"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-              />
-              <div className={styles.row}>
-                <Button type="submit">{t("deletePermanent")}</Button>
-                <Button variant="ghost" type="button" onClick={() => setConfirmDelete(false)}>
-                  {t("cancel")}
-                </Button>
-              </div>
-            </form>
           )}
         </div>
-      </div>
+        {confirmDelete && (
+          <form onSubmit={deleteAccountWithPassword} className={styles.form}>
+            <p className={styles.value}>{t("deleteAccountWarning")}</p>
+            <Input
+              label={t("password")}
+              type="password"
+              autoComplete="current-password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              revealLabel={t("showPassword")}
+              hideLabel={t("hidePassword")}
+            />
+            <div className={styles.row}>
+              <Button type="submit" variant="danger">
+                {t("deletePermanent")}
+              </Button>
+              <Button variant="ghost" type="button" onClick={() => setConfirmDelete(false)}>
+                {t("cancel")}
+              </Button>
+            </div>
+          </form>
+        )}
+      </Card>
 
       <Modal
         open={confirmDeleteOrg}
@@ -288,8 +320,50 @@ export default function SettingsPage() {
           </>
         }
       >
-        <p style={{ margin: 0 }}>This cannot be undone. The organization will be deactivated.</p>
+        <p className={styles.value}>{t("deleteOrgWarning")}</p>
       </Modal>
     </div>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <rect x="1.5" y="3" width="13" height="10" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="m2 4.5 6 4.5 6-4.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path d="M8 1.5 13.5 3.5v4c0 3.5-5.5 7-5.5 7s-5.5-3.5-5.5-7v-4L8 1.5Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="m5.8 8 1.6 1.6L10.5 6.4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function RefreshIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5V5H11" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path d="M8 2v8m0 0 3-3M8 10 5 7M3 13.5h10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path d="M2.5 4h11M6 4V2.5h4V4m-6 0 .6 9.5h6.8L12 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

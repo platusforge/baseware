@@ -1,16 +1,148 @@
-.brand { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.topAvatar { display: inline-flex; }
-.nav { margin-top: 12px; display: grid; gap: 2px; }
-.footer { margin-top: 20px; display: grid; gap: 10px; }
-.user { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-secondary); }
-.drawerBody { display: grid; gap: 16px; align-content: start; }
-.drawerNav { display: grid; gap: 2px; }
-.drawerNav a {
-  display: block; padding: 12px 10px;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  min-height: var(--touch-target);
+/* Dashboard shell. Mobile: topbar + drawer. Desktop (≥900px): Sidebar component. */
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
-.drawerNav a.active { background: var(--color-surface); color: var(--color-text); }
+
+/* ---- Mobile topbar ---- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--color-bg);
+  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.topbarTitle {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbarAvatar {
+  display: inline-flex;
+}
+
+/* ---- Content ---- */
+.content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 20px 16px 48px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+/* ---- Sidebar slots ---- */
+.sidebarBrand {
+  display: inline-flex;
+  padding: 2px 10px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  min-width: 0;
+}
+
+/* Org selector collapses smoothly (visibility hides it from a11y tree/focus). */
+.orgSlot {
+  overflow: hidden;
+  max-height: 140px;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    max-height var(--duration-slow) var(--ease-smooth),
+    opacity 160ms var(--ease-smooth) 70ms,
+    visibility 0s linear 0s;
+}
+
+.orgSlotCollapsed {
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    max-height var(--duration-slow) var(--ease-smooth),
+    opacity 110ms var(--ease-smooth),
+    visibility 0s linear var(--duration-slow);
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  transition: transform var(--duration-slow) var(--ease-smooth);
+}
+
+/* Collapsed rail: avatar centered in the 76px rail (padding 10 + 12 + 16 = 38). */
+.userCollapsed {
+  transform: translateX(12px);
+}
+
+.logoutCentered {
+  justify-self: center;
+}
+
+.email {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  transition:
+    max-width var(--duration-slow) var(--ease-smooth),
+    margin-left var(--duration-slow) var(--ease-smooth),
+    opacity 160ms var(--ease-smooth) 70ms;
+}
+
+.emailHidden {
+  max-width: 0;
+  opacity: 0;
+  margin-left: -8px;
+  transition:
+    max-width var(--duration-slow) var(--ease-smooth),
+    margin-left var(--duration-slow) var(--ease-smooth),
+    opacity 110ms var(--ease-smooth);
+}
+
+.fadeIn {
+  animation: fade-in var(--duration-fast) var(--ease-out);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---- Drawer body ---- */
+.drawerBody {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+@media (min-width: 900px) {
+  .shell {
+    flex-direction: row;
+  }
+
+  .topbar {
+    display: none;
+  }
+
+  .content {
+    padding: 28px 32px 56px;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+}

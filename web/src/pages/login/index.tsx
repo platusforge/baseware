@@ -3,17 +3,15 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useI18n } from "@/contexts/i18n-context";
 import { api } from "@/services/api";
-import { Alert, Button, Input } from "@/components";
+import { friendlyAuthError } from "@/utils/auth-errors";
+import { Alert, AuthCard, Button, Input } from "@/components";
+import styles from "./index.module.css";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 type Provider = { provider: string; configured: boolean };
 
-const ERROR_MESSAGES: Record<string, string> = {
-  "account-exists": "An account with this email already exists. Log in with your password, then link it.",
-  "oauth-failed": "Social login failed. Try again or use email.",
-  "provider-unconfigured": "This login method is not enabled.",
-};
+const PROVIDER_LABELS: Record<string, string> = { google: "Google", github: "GitHub" };
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -25,13 +23,20 @@ export default function LoginPage() {
   const [mfaCode, setMfaCode] = useState("");
   const [needMfa, setNeedMfa] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
   const [providers, setProviders] = useState<Provider[]>([]);
 
   useEffect(() => {
     const err = params.get("error");
-    if (err) setError(ERROR_MESSAGES[err] ?? "Login failed.");
-  }, [params]);
+    if (err) {
+      setNotice("");
+      setError(err === "account-exists" ? t("accountExists") : err === "provider-unconfigured" ? t("providerUnconfigured") : t("oauthFailed"));
+    } else if (params.get("expired")) {
+      setError("");
+      setNotice(t("sessionExpired"));
+    }
+  }, [params, t]);
 
   useEffect(() => {
     api
@@ -44,37 +49,59 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setNotice("");
     try {
       await login(email, password, needMfa ? mfaCode : undefined);
-      nav("/dashboard");
+      const next = params.get("next");
+      nav(next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t("loginFailed");
-      if (msg.includes("MFA_REQUIRED")) {
+      const raw = err instanceof Error ? err.message : "";
+      if (raw.includes("MFA_REQUIRED")) {
         setNeedMfa(true);
-        setError("Enter your 6-digit authenticator code (or backup code).");
+        setError(t("mfaRequired"));
         return;
       }
-      setError(msg);
+      setError(friendlyAuthError(raw, t));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="container" style={{ maxWidth: 420, paddingTop: 60 }}>
-      <h1>{t("login")}</h1>
+    <AuthCard
+      title={t("login")}
+      subtitle={t("loginSubtitle")}
+      footer={
+        <>
+          {t("noAccount")} <Link to="/register">{t("createAccount")}</Link> ·{" "}
+          <Link to="/reset-password">{t("forgotPassword")}</Link>
+        </>
+      }
+    >
       {providers.length > 0 && (
-        <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
-          {providers.map((p) => (
-            <a key={p.provider} className="btn btn--ghost" href={`${API_URL}/auth/oauth/${p.provider}`}>
-              {p.provider === "google" ? <GoogleIcon /> : <GitHubIcon />}
-              Continue with {p.provider === "google" ? "Google" : "GitHub"}
-            </a>
-          ))}
-        </div>
+        <>
+          <div className={styles.oauth}>
+            {providers.map((p) => (
+              <a key={p.provider} className={styles.oauthButton} href={`${API_URL}/auth/oauth/${p.provider}`}>
+                {p.provider === "google" ? <GoogleIcon /> : <GitHubIcon />}
+                {t("continueWith")} {PROVIDER_LABELS[p.provider] ?? p.provider}
+              </a>
+            ))}
+          </div>
+          <div className={styles.divider}>{t("or")}</div>
+        </>
       )}
-      <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
-        <Input label={t("email")} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+
+      <form onSubmit={submit} className={styles.form}>
+        <Input
+          label={t("email")}
+          type="email"
+          autoComplete="username"
+          autoFocus
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
         <Input
           label={t("password")}
           autoComplete="current-password"
@@ -82,10 +109,13 @@ export default function LoginPage() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          revealLabel={t("showPassword")}
+          hideLabel={t("hidePassword")}
         />
         {needMfa && (
           <Input
-            label="6-digit MFA code"
+            label={t("mfaCode")}
+            hint={t("mfaRequired")}
             inputMode="numeric"
             autoComplete="one-time-code"
             required
@@ -93,25 +123,27 @@ export default function LoginPage() {
             onChange={(e) => setMfaCode(e.target.value)}
           />
         )}
+        {notice && (
+          <Alert variant="info" role="status">
+            {notice}
+          </Alert>
+        )}
         {error && (
           <Alert variant="danger" role="alert">
             {error}
           </Alert>
         )}
-        <Button type="submit" loading={loading}>
+        <Button type="submit" loading={loading} fullWidth>
           {t("login")}
         </Button>
       </form>
-      <p>
-        <Link to="/register">{t("createAccount")}</Link> · <Link to="/reset-password">{t("forgotPassword")}</Link>
-      </p>
-    </div>
+    </AuthCard>
   );
 }
 
 function GoogleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" style={{ marginRight: 8 }} aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
       <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.5h6.5c-.1 1.1-.8 2.7-2.4 3.8l-.1.1 3.5 2.7.2.1c2.2-2 3.8-5 3.8-8.9z" />
       <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.1 1.2-3.2 0-5.9-2.1-6.8-5l-.1.1-3.6 2.8v.1C3.5 21.3 7.5 24 12 24z" />
       <path fill="#FBBC05" d="M5.2 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.7.4-2.4l-.1-.1-3.6-2.8-.1.1C.5 8.7 0 10.3 0 12s.5 3.3 1.4 4.7l3.8-2.3z" />
@@ -122,7 +154,7 @@ function GoogleIcon() {
 
 function GitHubIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 8 }} aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 .5C5.6.5.5 5.6.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.4-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C16.4 4.9 17.4 5.2 17.4 5.2c.6 1.6.2 2.8.1 3.1.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .4.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.6 18.4.5 12 .5z" />
     </svg>
   );

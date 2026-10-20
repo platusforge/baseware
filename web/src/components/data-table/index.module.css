@@ -1,56 +1,185 @@
+.root { width: 100%; min-width: 0; }
 .wrap { width: 100%; }
-.scroll { overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+
+/* Scroll mode: the wrapper owns the border and horizontal scrolling. */
+.scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
 .scroll .table { min-width: 640px; }
 
+/* ---- Table (desktop-first base) ---- */
 .table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--text-sm);
-  background: transparent;
-  border: 0;
 }
 
-.table th, .table td { padding: 12px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.table th,
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+/* Edge cells get extra breathing room inside the rounded container. */
+.table th:first-child,
+.table td:first-child {
+  padding-left: 20px;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: 20px;
+}
+
 .table thead th {
+  padding-top: 12px;
+  padding-bottom: 12px;
   text-align: left;
   font-size: var(--text-xs);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: var(--color-text-secondary);
   background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-strong);
   white-space: nowrap;
 }
 
-.table tbody tr:last-child td { border-bottom: 0; }
-.table tbody tr:hover td { background: var(--color-surface-raised); }
+.table tbody tr {
+  transition: background var(--transition);
+}
+
+.table tbody tr:hover td {
+  background: var(--color-surface-raised);
+}
+
+/* The container border closes the table — no double line. */
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
 
 .align-left { text-align: left; }
 .align-center { text-align: center; }
 .align-right { text-align: right; }
 
+/* ---- Sortable headers ---- */
 .sortBtn {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: none; border: 0; padding: 0;
-  font: inherit; text-transform: inherit; letter-spacing: inherit;
-  color: inherit; cursor: pointer;
-  min-height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color var(--transition);
 }
 
 .sortBtn:hover { color: var(--color-text); }
+
+@media (pointer: coarse) {
+  .sortBtn { min-height: var(--touch-target); padding: 0 4px; margin: 0 -4px; }
+}
+
 .arrow { font-size: 10px; }
 
-.checkCell { width: 44px; }
+/* ---- Selection column ---- */
+.checkCell {
+  width: 48px;
+  text-align: center;
+}
+
 .checkCell input {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--color-primary);
   cursor: pointer;
 }
 
 .actions { white-space: nowrap; text-align: right; }
 
-.selection { font-size: var(--text-sm); color: var(--color-text-secondary); margin: 8px 0 0; }
+.selection {
+  margin: 10px 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
 
+/* ---- Built-in toolbar (search slot + column manager + export) ---- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.toolbarStart {
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.toolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.exportIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ---- Click-to-copy cells ---- */
+.copyCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: copy;
+  transition: background var(--transition);
+}
+
+.copyCell:hover {
+  background: var(--color-surface-raised);
+}
+
+.copyIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  opacity: 0;
+  color: var(--color-text-muted);
+  transition: opacity var(--transition);
+}
+
+.copyIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.copyCell:hover .copyIcon,
+.copyCell:focus-visible .copyIcon {
+  opacity: 1;
+}
+
+/* ---- Empty state ---- */
 .empty {
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-lg);
@@ -62,72 +191,95 @@
 .emptyTitle { margin: 0 0 4px; font-weight: 700; font-size: var(--text-md); }
 .emptyHint { margin: 0 0 12px; font-size: var(--text-sm); color: var(--color-text-secondary); }
 
-/* Mobile-first: rows are stacked cards with inline labels */
-.wrap:not(.scroll) .table,
-.wrap:not(.scroll) .table tbody,
-.wrap:not(.scroll) .table tr,
-.wrap:not(.scroll) .table td { display: block; width: 100%; }
-
-.wrap:not(.scroll) .table thead { display: none; }
-
-.wrap:not(.scroll) .cardRow {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 4px 16px;
-  margin-bottom: 12px;
-}
-
-.wrap:not(.scroll) .table td {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-border);
-  text-align: right;
-}
-
-.wrap:not(.scroll) .table td:last-child { border-bottom: 0; }
-
-.wrap:not(.scroll) .table td::before {
-  content: attr(data-label);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-}
-
-.wrap:not(.scroll) .table td[data-title]::before { display: none; }
-.wrap:not(.scroll) .table td[data-title] {
-  font-weight: 700;
-  font-size: var(--text-md);
-  justify-content: flex-start;
-}
-
-.wrap:not(.scroll) .checkCell { display: flex !important; }
-.wrap:not(.scroll) .actions { justify-content: flex-end; }
-
-/* Desktop: classic table */
+/* ---- Cards layout container (desktop) ---- */
 @media (min-width: 720px) {
   .wrap:not(.scroll) .table {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    display: table;
+  }
+}
+
+/* ---- Mobile: rows become stacked cards with inline labels ---- */
+@media (max-width: 719px) {
+  .wrap:not(.scroll) .table,
+  .wrap:not(.scroll) .table tbody,
+  .wrap:not(.scroll) .table tr,
+  .wrap:not(.scroll) .table td {
+    display: block;
+    width: 100%;
   }
 
-  .wrap:not(.scroll) .table thead { display: table-header-group; }
-  .wrap:not(.scroll) .table tbody { display: table-row-group; }
-  .wrap:not(.scroll) .table tr { display: table-row; }
-  .wrap:not(.scroll) .table td,
-  .wrap:not(.scroll) .table th { display: table-cell; width: auto; }
+  .wrap:not(.scroll) .table thead {
+    display: none;
+  }
+
+  .wrap:not(.scroll) .cardRow {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 4px 16px;
+    margin-bottom: 12px;
+  }
 
   .wrap:not(.scroll) .table td {
-    text-align: left;
-    justify-content: flex-start;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border);
+    text-align: right;
   }
 
-  .wrap:not(.scroll) .table td::before { display: none; }
-  .wrap:not(.scroll) .cardRow { background: transparent; border: 0; padding: 0; margin-bottom: 0; }
+  .wrap:not(.scroll) .table td:last-child {
+    border-bottom: 0;
+  }
+
+  .wrap:not(.scroll) .table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-secondary);
+  }
+
+  .wrap:not(.scroll) .table td[data-title]::before {
+    display: none;
+  }
+
+  .wrap:not(.scroll) .table td[data-title] {
+    justify-content: flex-start;
+    font-size: var(--text-md);
+    font-weight: 700;
+  }
+
+  .wrap:not(.scroll) .checkCell {
+    display: flex !important;
+  }
+
+  .wrap:not(.scroll) .checkCell input {
+    width: 24px;
+    height: 24px;
+  }
+
+  .wrap:not(.scroll) .actions {
+    justify-content: flex-end;
+  }
+
+  .wrap:not(.scroll) .table td .copyCell {
+    justify-content: flex-end;
+  }
+
+  /* Columns flagged as hideOnMobile are omitted on small screens. */
+  .table .hideMobile {
+    display: none;
+  }
+
+  .wrap:not(.scroll) .table td.hideMobile {
+    display: none;
+  }
 }

@@ -1,1 +1,17 @@
-.x { display: none; }
+.head {
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 36px;
+}
+
+.head h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+
+.head p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-lg);
+}

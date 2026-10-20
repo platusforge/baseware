@@ -39,6 +39,8 @@ function limiter(opts: { windowMs: number; max: number; prefix: string }) {
 }
 
 export const loginRateLimit = limiter({ windowMs: 15 * 60 * 1000, max: env.LOGIN_RATE_LIMIT_MAX, prefix: "rl:login:" });
+/** Refresh gets its own budget: background calls (session probe) must not eat the login limit. */
+export const refreshRateLimit = limiter({ windowMs: 15 * 60 * 1000, max: 60, prefix: "rl:refresh:" });
 
 export const resetRateLimit = limiter({ windowMs: 60 * 60 * 1000, max: env.RESET_RATE_LIMIT_MAX, prefix: "rl:reset:" });
 

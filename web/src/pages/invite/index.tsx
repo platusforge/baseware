@@ -1,55 +1,83 @@
 import { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { api } from "@/services/api";
+import { useAuth } from "@/contexts/auth-context";
 import { useI18n } from "@/contexts/i18n-context";
-import { Alert, Button } from "@/components";
+import { Alert, AuthCard, Button, Spinner } from "@/components";
+import styles from "./index.module.css";
 
 export default function InvitePage() {
   const [params] = useSearchParams();
   const nav = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const { t } = useI18n();
-  const [message, setMessage] = useState("");
+  const [accepted, setAccepted] = useState(false);
+  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const token = params.get("token") ?? "";
+  const nextPath = `/invite?token=${encodeURIComponent(token)}`;
 
   async function accept() {
     if (!token || busy) return;
     setBusy(true);
+    setError("");
     try {
       await api.post<{ organizationId: string }>("/invitations/accept", { token });
-      setMessage(t("invitationSent"));
-      setTimeout(() => nav("/dashboard"), 800);
+      setAccepted(true);
+      setTimeout(() => nav("/dashboard"), 1200);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Invalid or expired invitation.");
+      const raw = err instanceof Error ? err.message : "";
+      setError(raw === "Invalid or expired invitation." ? t("inviteInvalid") : raw || t("inviteInvalid"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="container" style={{ maxWidth: 520, paddingTop: 60 }}>
-      <h1>{t("acceptInvite")}</h1>
+    <AuthCard
+      title={t("acceptInvite")}
+      subtitle={token ? t("boundEmail") : undefined}
+      footer={
+        <>
+          <Link to="/login">{t("login")}</Link> · <Link to="/register">{t("register")}</Link>
+        </>
+      }
+    >
       {!token && (
         <Alert variant="danger" role="alert">
           {t("missingToken")}
         </Alert>
       )}
-      {token && (
+      {token && accepted && (
+        <Alert variant="success" role="status">
+          {t("inviteAccepted")}
+        </Alert>
+      )}
+      {token && !accepted && authLoading && (
+        <div className={styles.loading}>
+          <Spinner label={t("loading")} />
+        </div>
+      )}
+      {token && !accepted && !authLoading && !user && (
         <>
-          <p>{t("boundEmail")}</p>
-          <Button type="button" loading={busy} onClick={accept}>
+          <Alert variant="info">{t("inviteLoginPrompt")}</Alert>
+          <Link className={styles.primaryAction} to={`/login?next=${encodeURIComponent(nextPath)}`}>
+            {t("login")}
+          </Link>
+        </>
+      )}
+      {token && !accepted && !authLoading && user && (
+        <>
+          {error && (
+            <Alert variant="danger" role="alert">
+              {error}
+            </Alert>
+          )}
+          <Button type="button" loading={busy} onClick={accept} fullWidth>
             {t("accept")}
           </Button>
         </>
       )}
-      {message && (
-        <Alert variant="info" role="status">
-          {message}
-        </Alert>
-      )}
-      <p>
-        <Link to="/login">{t("login")}</Link> · <Link to="/register">{t("register")}</Link>
-      </p>
-    </div>
+    </AuthCard>
   );
 }
