@@ -1,4 +1,4 @@
-# Commercial License — SaaS Boilerplate
+# Commercial License — DevKit
 
 Copyright (c) 2026. All rights reserved.
 

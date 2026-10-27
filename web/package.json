@@ -10,18 +10,17 @@
     "lint": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
-    "@sentry/react": "^10.74.0",
-    "posthog-js": "^1.0.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.23.0"
+    "@sentry/react": "^11.8.0",
+    "posthog-js": "^1.438.13",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "^5.4.5",
-    "vite": "^5.4.0",
-    "vite-tsconfig-paths": "^4.3.2"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.4"
   }
 }

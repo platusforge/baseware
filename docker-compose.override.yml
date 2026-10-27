@@ -15,6 +15,7 @@ services:
     volumes:
       - ./server:/app/server
       - /app/node_modules
+      - /app/server/node_modules
     environment:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - CHOKIDAR_USEPOLLING=1
@@ -28,6 +29,7 @@ services:
     volumes:
       - ./web:/app/web
       - /app/node_modules
+      - /app/web/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=1
     ports: ["5173:5173"]

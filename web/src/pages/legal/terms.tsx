@@ -3,7 +3,7 @@ import { useSeo } from "@/utils/seo";
 import styles from "./legal.module.css";
 
 export default function TermsPage() {
-  useSeo("Terms of Service — SaaS Boilerplate", "Terms for using the SaaS Boilerplate starter.");
+  useSeo("Terms of Service — DevKit", "Terms for using the DevKit starter.");
 
   return (
     <SiteLayout>

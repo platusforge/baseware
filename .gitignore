@@ -7,4 +7,5 @@ coverage/
 .DS_Store
 postgres_data/
 server-generated/
+server/src/generated/
 web/dist/

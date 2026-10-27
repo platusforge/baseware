@@ -6,10 +6,12 @@ WORKDIR /app
 ENV PATH=/app/node_modules/.bin:$PATH
 COPY package.json package-lock.json ./
 COPY server/package.json ./server/
-RUN npm ci --workspace=server
 COPY server/prisma ./server/prisma
+COPY server/prisma.config.ts ./server/
+RUN npm ci --workspace=server
 WORKDIR /app/server
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
+RUN mkdir -p src
 RUN prisma generate
 COPY server/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

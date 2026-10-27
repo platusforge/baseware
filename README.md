@@ -1,4 +1,6 @@
-# SaaS Boilerplate
+# DevKit
+
+[![Sponsor DevKit](https://img.shields.io/badge/Sponsor-DevKit-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ClaudioBzrr)
 
 Production-ready SaaS starter: **Express + React (Vite) + PostgreSQL**, with everything paid boilerplates ($199–$349) ship — and nothing they omit for B2B.
 
@@ -20,9 +22,9 @@ Production-ready SaaS starter: **Express + React (Vite) + PostgreSQL**, with eve
 
 ## Stack
 
-- **server**: Express 4, TypeScript strict, Prisma 6, PostgreSQL 16, Zod, Winston + Morgan, Helmet, express-rate-limit, Stripe, Resend, node-cron.
-- **web**: React 18, Vite 5, React Router 6, CSS Modules + CSS variables (dark/light), EN + PT-BR i18n.
-- **infra**: Docker Compose (base/override/prod), Nginx SPA + `/api` proxy, Traefik TLS, GH Actions push-to-deploy.
+- **server**: Express 5, TypeScript strict, Prisma 7 (driver adapter), PostgreSQL 16, Zod 4, Winston + Morgan, Helmet, express-rate-limit, Stripe, Resend, node-cron.
+- **web**: React 19, Vite 8, React Router 7, CSS Modules + CSS variables (dark/light), EN + PT-BR i18n.
+- **infra**: Node 24, Docker Compose (base/override/prod), Nginx SPA + `/api` proxy, Traefik TLS, GH Actions push-to-deploy.
 
 ## Quickstart (Docker — the only supported path)
 

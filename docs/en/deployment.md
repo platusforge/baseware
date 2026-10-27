@@ -31,7 +31,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile with-r
 docker compose -f docker-compose.yml -f docker-compose.prod.yml exec db-backup ls -l /backups
 # restore (downtime window, tested monthly)
 docker compose -f docker-compose.yml -f docker-compose.prod.yml down
-docker volume rm saas-boilerplate_postgres_data
+docker volume rm devkit_postgres_data
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d db
 cat backups/latest.sql.gz | gunzip | docker compose exec -T db psql -U $DB_USER -d $DB_NAME
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d

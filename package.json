@@ -1,8 +1,8 @@
 {
-  "name": "saas-boilerplate",
+  "name": "devkit",
   "version": "1.0.0",
   "private": true,
-  "description": "Professional SaaS boilerplate — Express + React (Vite) + PostgreSQL.",
+  "description": "DevKit — professional SaaS starter: Express + React (Vite) + PostgreSQL.",
   "workspaces": [
     "server",
     "web"
@@ -19,9 +19,13 @@
     "security:audit": "node scripts/audit-gate.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "overrides": {
-    "tar": "^7.5.21"
+    "body-parser": "^2.4.0",
+    "dompurify": "^3.4.17",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tar": "^7.5.22"
   }
 }

@@ -71,12 +71,12 @@ export class StripeBillingAdapter implements IBillingAdapter {
       status: sub.status,
       priceId: item?.price.id,
       seats: sub.items.data.reduce((sum, i) => sum + (i.quantity ?? 1), 0),
-      periodEnd: sub.current_period_end || null,
+      periodEnd: item?.current_period_end ?? null,
       customerId: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
     };
   }
 
-  async listInvoices(stripeCustomerId: string) {
+  async listInvoices(stripeCustomerId: string): Promise<{ id: string; amount: number; currency: string; status: string; created: number; pdfUrl: string | null }[]> {
     const stripe = client();
     if (!stripe || stripeCustomerId.startsWith("cus_mock_")) return [];
     const invoices = await stripe.invoices.list({ customer: stripeCustomerId, limit: 12 });

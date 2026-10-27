@@ -1,5 +1,5 @@
 import { prisma } from "@/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { logger } from "@/logger";
 import { IApiKeyRepository, IAuditRepository, IInvitationRepository, IMembershipRepository, INotificationRepository, IOAuthAccountRepository, IOrganizationRepository, IPasswordResetRepository, IRefreshTokenRepository, ISubscriptionRepository, IUsageEventRepository, IWebhookEventRepository } from "@/types/repositories/saas-repositories";
 import { IOrganization, MembershipRole } from "@/types/entities/organization";

@@ -15,6 +15,7 @@ import { TrackUsageService } from "@/services/usage-service/track-usage-service"
 import { GetProfileService } from "@/services/account-service/get-profile-service";
 import { organizationRepository, membershipRepository, invitationRepository, auditRepository, userRepository, subscriptionRepository, apiKeyRepository, notificationRepository, usageEventRepository, permissionRepository } from "@/repositories";
 import { billingAdapter, mailAdapter, storageAdapter } from "@/adapters";
+import { firstParam } from "@/common/validation";
 
 const createOrgService = new CreateOrganizationService(organizationRepository, membershipRepository, auditRepository, subscriptionRepository);
 const listOrgsService = new ListOrganizationsService(organizationRepository);
@@ -64,7 +65,7 @@ export class OrganizationController {
   }
   async members(req: Request, res: Response) {
     try {
-      const orgId = req.params.orgId ?? req.organizationId;
+      const orgId = firstParam(req.params.orgId) ?? req.organizationId;
       if (!orgId) throw new Error("Missing organization.");
       const result = await listMembersService.execute({ organizationId: orgId });
       return res.json(result);
@@ -75,7 +76,7 @@ export class OrganizationController {
   async invite(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-      const orgId = req.params.orgId ?? req.organizationId;
+      const orgId = firstParam(req.params.orgId) ?? req.organizationId;
       if (!userId || !orgId) throw new Error("Missing credentials.");
       const result = await inviteService.execute(userId, orgId, req.body);
       return res.status(201).json(result);
@@ -96,7 +97,7 @@ export class OrganizationController {
   async remove(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-      const orgId = req.params.orgId ?? req.organizationId;
+      const orgId = firstParam(req.params.orgId) ?? req.organizationId;
       if (!userId || !orgId) throw new Error("Missing credentials.");
       const result = await deleteOrgService.execute(userId, orgId);
       return res.json(result);
@@ -107,9 +108,10 @@ export class OrganizationController {
   async resendInvite(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-      const orgId = req.params.orgId ?? req.organizationId;
-      if (!userId || !orgId) throw new Error("Missing credentials.");
-      const result = await resendInviteService.execute(userId, orgId, req.params.id);
+      const orgId = firstParam(req.params.orgId) ?? req.organizationId;
+      const id = firstParam(req.params.id);
+      if (!userId || !orgId || !id) throw new Error("Missing credentials.");
+      const result = await resendInviteService.execute(userId, orgId, id);
       return res.json(result);
     } catch (err) {
       return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
@@ -118,9 +120,10 @@ export class OrganizationController {
   async revokeInvite(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-      const orgId = req.params.orgId ?? req.organizationId;
-      if (!userId || !orgId) throw new Error("Missing credentials.");
-      const result = await revokeInviteService.execute(userId, orgId, req.params.id);
+      const orgId = firstParam(req.params.orgId) ?? req.organizationId;
+      const id = firstParam(req.params.id);
+      if (!userId || !orgId || !id) throw new Error("Missing credentials.");
+      const result = await revokeInviteService.execute(userId, orgId, id);
       return res.json(result);
     } catch (err) {
       return res.status(400).json({ message: err instanceof Error ? err.message : "Error" });
@@ -163,7 +166,7 @@ export class BillingController {
   }
   async status(req: Request, res: Response) {
     try {
-      const orgId = req.organizationId ?? req.params.orgId ?? (req.query.orgId as string);
+      const orgId = req.organizationId ?? firstParam(req.params.orgId) ?? (req.query.orgId as string);
       if (!orgId) throw new Error("Missing organization.");
       const result = await subStatusService.execute(orgId);
       return res.json(result);
@@ -205,8 +208,9 @@ export class ApiKeyController {
   async revoke(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-      if (!userId) throw new Error("Missing credentials.");
-      const result = await revokeKeyService.execute(userId, req.params.id);
+      const id = firstParam(req.params.id);
+      if (!userId || !id) throw new Error("Missing credentials.");
+      const result = await revokeKeyService.execute(userId, id);
       return res.json(result);
     } catch {
       return res.status(400).json({ message: "Error" });
@@ -238,7 +242,7 @@ export class MiscController {
     try {
       const userId = req.user?.userId;
       if (!userId) throw new Error("Missing credentials.");
-      const result = await markReadService.execute(userId, { id: req.params.id });
+      const result = await markReadService.execute(userId, { id: firstParam(req.params.id) });
       return res.json(result);
     } catch {
       return res.status(400).json({ message: "Error" });
@@ -246,7 +250,7 @@ export class MiscController {
   }
   async audit(req: Request, res: Response) {
     try {
-      const orgId = req.params.orgId ?? req.organizationId;
+      const orgId = firstParam(req.params.orgId) ?? req.organizationId;
       if (!orgId) throw new Error("Missing organization.");
       return res.json(await listAuditService.execute({ organizationId: orgId }));
     } catch {

@@ -15,11 +15,16 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Generate Prisma client
+        run: npm --workspace server run prisma:generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
 
       - name: Typecheck server
         run: npm --workspace server run lint
@@ -61,7 +66,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: "."
-          target: "~/dev/saas-boilerplate"
+          target: "~/dev/devkit"
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -71,7 +76,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd ~/dev/saas-boilerplate
+            cd ~/dev/devkit
 
             # Write .env from GitHub secrets (single-quoted to prevent shell expansion)
             {

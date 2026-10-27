@@ -8,7 +8,7 @@ import styles from "./index.module.css";
 
 export default function BlogPage() {
   const { t, lang } = useI18n();
-  useSeo("Blog — SaaS Boilerplate", t("blogSubtitle"));
+  useSeo("Blog — DevKit", t("blogSubtitle"));
 
   return (
     <SiteLayout>

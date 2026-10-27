@@ -4,7 +4,7 @@ import { IPasswordHasher } from "@/types/repositories/saas-repositories";
 
 export class BcryptPasswordHasher implements IPasswordHasher {
   async hash(plain: string): Promise<string> {
-    return bcryptHash(plain, env.BCRYPT_COST);
+    return bcryptHash(plain, { cost: env.BCRYPT_COST });
   }
 
   async compare(plain: string, hashed: string): Promise<boolean> {

@@ -7,7 +7,7 @@ COPY web/package.json ./web/
 RUN npm ci --workspace=web
 WORKDIR /app/web
 EXPOSE 5173
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["npm", "run", "dev"]
 
 # ── Build: compile static assets ─────────────────────────────────────
 FROM node:24-alpine AS build-stage
