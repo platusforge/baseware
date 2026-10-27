@@ -1,15 +1,16 @@
 # DevKit
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
 [![Sponsor DevKit](https://img.shields.io/badge/Sponsor-DevKit-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ClaudioBzrr)
 
-Production-ready SaaS starter: **Express + React (Vite) + PostgreSQL**, with everything paid boilerplates ($199–$349) ship — and nothing they omit for B2B.
+**Open-source, production-ready SaaS starter** — Express + React (Vite) + PostgreSQL, with everything paid boilerplates ship — and nothing they omit for B2B. Free under MIT.
 
 > 🇧🇷 Fala português? Leia [README.pt-BR.md](./README.pt-BR.md).
 > 🤖 Building with an AI agent? Read [AGENTS.md](./AGENTS.md) first — it is the exclusive build manual.
 
-## Why this boilerplate
+## Why DevKit
 
-| Paid kits do | This boilerplate |
+| What paid kits do | DevKit (MIT) |
 |---|---|
 | Auth (email + OAuth) | ✅ Email/password + Google/GitHub OAuth (state + PKCE, verified-email linking) |
 | Organizations / teams / invites / RBAC | ✅ First-class multi-tenancy, per-org billing |
@@ -19,6 +20,8 @@ Production-ready SaaS starter: **Express + React (Vite) + PostgreSQL**, with eve
 | Transactional email | ✅ Resend adapter (HTTP API, no SMTP CVEs) |
 | Docker + CI/CD | ✅ 3-file Compose, multi-stage Dockerfiles, Traefik TLS, GH Actions |
 | Tests + docs + AI rules | ✅ Jest unit tests, bilingual docs, AGENTS.md |
+
+**License:** MIT — free for commercial use, modification, distribution and resale. No per-project tiers, no seat limits, no license keys. Paid kits charge $199–$349; DevKit is free.
 
 ## Stack
 
@@ -94,6 +97,10 @@ docs/{en,pt-BR}/ · AGENTS.md · docker-compose*.yml · .github/workflows/ci.yml
 - Português: [`docs/pt-BR/`](./docs/pt-BR/inicio-rapido.md)
 - AI agents: [`AGENTS.md`](./AGENTS.md) (mandatory reading before generating features)
 
+## Contributing
+
+Issues and pull requests are welcome — see [github.com/platusforge/dev-kit](https://github.com/platusforge/dev-kit).
+
 ## License
 
-Commercial use allowed under [`LICENSE.md`](./LICENSE.md) (single-project or unlimited tier, per your receipt). You may NOT resell or redistribute the boilerplate source itself.
+MIT — see [`LICENSE.md`](./LICENSE.md). You may use, modify, distribute and sell products built on this boilerplate; keep the copyright notice and license text in copies of the source.

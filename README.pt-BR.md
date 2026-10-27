@@ -1,15 +1,16 @@
 # DevKit
 
+[![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow.svg)](./LICENSE.md)
 [![Patrocinar o DevKit](https://img.shields.io/badge/Patrocinar-DevKit-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ClaudioBzrr)
 
-Starter SaaS pronto para produção: **Express + React (Vite) + PostgreSQL**, com tudo que os boilerplates pagos ($199–$349) entregam — e nada do que eles omitem para B2B.
+**Starter SaaS open-source e pronto para produção** — Express + React (Vite) + PostgreSQL, com tudo que os boilerplates pagos entregam — e nada do que eles omitem para B2B. Licença MIT.
 
 > 🇺🇸 English? Read [README.md](./README.md).
 > 🤖 Vai construir com agente de IA? Leia [AGENTS.md](./AGENTS.md) primeiro — é o manual oficial de construção.
 
-## Por que este boilerplate
+## Por que o DevKit
 
-| O que os pagos fazem | Este boilerplate |
+| O que os boilerplates pagos fazem | DevKit (MIT) |
 |---|---|
 | Auth (email + OAuth) | ✅ Email/senha + OAuth Google/GitHub (state + PKCE, vínculo por email verificado) |
 | Organizações / times / convites / RBAC | ✅ Multi-tenancy first-class, billing por organização |
@@ -19,6 +20,8 @@ Starter SaaS pronto para produção: **Express + React (Vite) + PostgreSQL**, co
 | Email transacional | ✅ Adapter Resend (HTTP API, sem CVEs de SMTP) |
 | Docker + CI/CD | ✅ Compose em 3 arquivos, Dockerfiles multi-stage, Traefik TLS, GH Actions |
 | Testes + docs + regras de IA | ✅ Testes Jest, docs bilíngues, AGENTS.md |
+
+**Licença:** MIT — livre para uso comercial, modificação, distribuição e revenda. Sem tiers por projeto, sem limite de seats, sem license keys. Boilerplates pagos cobram $199–$349; o DevKit é grátis.
 
 ## Stack
 
@@ -92,6 +95,10 @@ docs/{en,pt-BR}/ · AGENTS.md · docker-compose*.yml · .github/workflows/ci.yml
 - English: [`docs/en/`](./docs/en/getting-started.md)
 - Agentes de IA: [`AGENTS.md`](./AGENTS.md) (leitura obrigatória antes de gerar features)
 
+## Contribuindo
+
+Issues e pull requests são bem-vindos — veja [github.com/platusforge/dev-kit](https://github.com/platusforge/dev-kit).
+
 ## Licença
 
-Uso comercial permitido sob [`LICENSE.md`](./LICENSE.md) (tier single-project ou unlimited, conforme seu recibo). É proibido revender ou redistribuir o código-fonte do boilerplate.
+MIT — veja [`LICENSE.md`](./LICENSE.md). Você pode usar, modificar, distribuir e vender produtos construídos sobre este boilerplate; mantenha o aviso de copyright e o texto da licença nas cópias do código-fonte.
