@@ -1,9 +1,9 @@
 {
-  "name": "devkit",
+  "name": "baseware",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
-  "description": "DevKit — professional SaaS starter: Express + React (Vite) + PostgreSQL.",
+  "description": "Baseware — professional SaaS starter: Express + React (Vite) + PostgreSQL.",
   "workspaces": [
     "server",
     "web"

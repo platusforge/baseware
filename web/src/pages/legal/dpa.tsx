@@ -3,7 +3,7 @@ import { useSeo } from "@/utils/seo";
 import styles from "./legal.module.css";
 
 export default function DpaPage() {
-  useSeo("Data Processing Addendum — DevKit", "Starter DPA for DevKit.");
+  useSeo("Data Processing Addendum — Baseware", "Starter DPA for Baseware.");
 
   return (
     <SiteLayout>

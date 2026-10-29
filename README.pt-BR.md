@@ -1,16 +1,16 @@
-# DevKit
+# Baseware
 
 [![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow.svg)](./LICENSE.md)
-[![Patrocinar o DevKit](https://img.shields.io/badge/Patrocinar-DevKit-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ClaudioBzrr)
+[![Patrocinar o Baseware](https://img.shields.io/badge/Patrocinar-Baseware-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ClaudioBzrr)
 
 **Starter SaaS open-source e pronto para produção** — Express + React (Vite) + PostgreSQL, com tudo que os boilerplates pagos entregam — e nada do que eles omitem para B2B. Licença MIT.
 
 > 🇺🇸 English? Read [README.md](./README.md).
 > 🤖 Vai construir com agente de IA? Leia [AGENTS.md](./AGENTS.md) primeiro — é o manual oficial de construção.
 
-## Por que o DevKit
+## Por que o Baseware
 
-| O que os boilerplates pagos fazem | DevKit (MIT) |
+| O que os boilerplates pagos fazem | Baseware (MIT) |
 |---|---|
 | Auth (email + OAuth) | ✅ Email/senha + OAuth Google/GitHub (state + PKCE, vínculo por email verificado) |
 | Organizações / times / convites / RBAC | ✅ Multi-tenancy first-class, billing por organização |
@@ -21,7 +21,7 @@
 | Docker + CI/CD | ✅ Compose em 3 arquivos, Dockerfiles multi-stage, Traefik TLS, GH Actions |
 | Testes + docs + regras de IA | ✅ Testes Jest, docs bilíngues, AGENTS.md |
 
-**Licença:** MIT — livre para uso comercial, modificação, distribuição e revenda. Sem tiers por projeto, sem limite de seats, sem license keys. Boilerplates pagos cobram $199–$349; o DevKit é grátis.
+**Licença:** MIT — livre para uso comercial, modificação, distribuição e revenda. Sem tiers por projeto, sem limite de seats, sem license keys. Boilerplates pagos cobram $199–$349; o Baseware é grátis.
 
 ## Stack
 
@@ -97,7 +97,7 @@ docs/{en,pt-BR}/ · AGENTS.md · docker-compose*.yml · .github/workflows/ci.yml
 
 ## Contribuindo
 
-Issues e pull requests são bem-vindos — veja [github.com/platusforge/dev-kit](https://github.com/platusforge/dev-kit).
+Issues e pull requests são bem-vindos — veja [github.com/platusforge/baseware](https://github.com/platusforge/baseware).
 
 ## Licença
 

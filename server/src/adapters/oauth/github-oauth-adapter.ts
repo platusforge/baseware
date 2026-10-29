@@ -40,7 +40,7 @@ export class GitHubOAuthAdapter implements IOAuthAdapter {
     const tokens = (await tokenRes.json()) as { access_token?: string; error?: string };
     if (!tokens.access_token) throw new Error("OAuth code exchange failed.");
 
-    const headers = { Authorization: `Bearer ${tokens.access_token}`, Accept: "application/vnd.github+json", "User-Agent": "devkit" };
+    const headers = { Authorization: `Bearer ${tokens.access_token}`, Accept: "application/vnd.github+json", "User-Agent": "baseware" };
     const signal = AbortSignal.timeout(15_000);
     const [userRes, emailsRes] = await Promise.all([fetch(USER_URL, { headers, signal }), fetch(EMAILS_URL, { headers, signal })]);
     if (!userRes.ok || !emailsRes.ok) throw new Error("OAuth profile fetch failed.");

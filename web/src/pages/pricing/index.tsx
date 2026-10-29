@@ -5,7 +5,7 @@ import styles from "./index.module.css";
 
 export default function PricingPage() {
   const { t } = useI18n();
-  useSeo("Pricing — DevKit", t("pricingSubtitle"));
+  useSeo("Pricing — Baseware", t("pricingSubtitle"));
 
   return (
     <SiteLayout width="lg">

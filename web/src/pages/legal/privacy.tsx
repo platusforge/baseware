@@ -3,7 +3,7 @@ import { useSeo } from "@/utils/seo";
 import styles from "./legal.module.css";
 
 export default function PrivacyPage() {
-  useSeo("Privacy Policy — DevKit", "How the DevKit starter handles personal data (LGPD / GDPR ready).");
+  useSeo("Privacy Policy — Baseware", "How the Baseware starter handles personal data (LGPD / GDPR ready).");
 
   return (
     <SiteLayout>

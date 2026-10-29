@@ -58,7 +58,7 @@ export function verifyTotp(secret: string, token: string, window = 1): boolean {
   return false;
 }
 
-export function otpauthUrl(secret: string, email: string, issuer = "DevKit"): string {
+export function otpauthUrl(secret: string, email: string, issuer = "Baseware"): string {
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&digits=6&period=30`;
 }
 

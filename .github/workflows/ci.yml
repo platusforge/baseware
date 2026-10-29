@@ -66,7 +66,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: "."
-          target: "~/dev/devkit"
+          target: "~/dev/baseware"
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -76,7 +76,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd ~/dev/devkit
+            cd ~/dev/baseware
 
             # Write .env from GitHub secrets (single-quoted to prevent shell expansion)
             {

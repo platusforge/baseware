@@ -1,16 +1,16 @@
-# DevKit
+# Baseware
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
-[![Sponsor DevKit](https://img.shields.io/badge/Sponsor-DevKit-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ClaudioBzrr)
+[![Sponsor Baseware](https://img.shields.io/badge/Sponsor-Baseware-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ClaudioBzrr)
 
 **Open-source, production-ready SaaS starter** — Express + React (Vite) + PostgreSQL, with everything paid boilerplates ship — and nothing they omit for B2B. Free under MIT.
 
 > 🇧🇷 Fala português? Leia [README.pt-BR.md](./README.pt-BR.md).
 > 🤖 Building with an AI agent? Read [AGENTS.md](./AGENTS.md) first — it is the exclusive build manual.
 
-## Why DevKit
+## Why Baseware
 
-| What paid kits do | DevKit (MIT) |
+| What paid kits do | Baseware (MIT) |
 |---|---|
 | Auth (email + OAuth) | ✅ Email/password + Google/GitHub OAuth (state + PKCE, verified-email linking) |
 | Organizations / teams / invites / RBAC | ✅ First-class multi-tenancy, per-org billing |
@@ -21,7 +21,7 @@
 | Docker + CI/CD | ✅ 3-file Compose, multi-stage Dockerfiles, Traefik TLS, GH Actions |
 | Tests + docs + AI rules | ✅ Jest unit tests, bilingual docs, AGENTS.md |
 
-**License:** MIT — free for commercial use, modification, distribution and resale. No per-project tiers, no seat limits, no license keys. Paid kits charge $199–$349; DevKit is free.
+**License:** MIT — free for commercial use, modification, distribution and resale. No per-project tiers, no seat limits, no license keys. Paid kits charge $199–$349; Baseware is free.
 
 ## Stack
 
@@ -99,7 +99,7 @@ docs/{en,pt-BR}/ · AGENTS.md · docker-compose*.yml · .github/workflows/ci.yml
 
 ## Contributing
 
-Issues and pull requests are welcome — see [github.com/platusforge/dev-kit](https://github.com/platusforge/dev-kit).
+Issues and pull requests are welcome — see [github.com/platusforge/baseware](https://github.com/platusforge/baseware).
 
 ## License
 

@@ -6,7 +6,7 @@ import styles from "./index.module.css";
 
 export default function LandingPage() {
   const { t } = useI18n();
-  useSeo("DevKit — Ship your SaaS faster", t("landingLead"));
+  useSeo("Baseware — Ship your SaaS faster", t("landingLead"));
 
   const features = [
     { icon: <UsersIcon />, title: t("featOrgsTitle"), desc: t("featOrgsDesc") },

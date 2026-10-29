@@ -12,7 +12,7 @@ export default function BlogPostPage() {
   const post = POSTS.find((p) => p.slug === slug);
   const content = post ? (lang === "pt-BR" ? post.pt : post.en) : null;
   useSeo(
-    content ? `${content.title} — DevKit` : `${t("notFound")} — DevKit`,
+    content ? `${content.title} — Baseware` : `${t("notFound")} — Baseware`,
     content?.excerpt ?? t("postNotFound"),
   );
 

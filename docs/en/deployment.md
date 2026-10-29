@@ -24,6 +24,27 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile with-r
 - After first boot, change the seeded admin password (`db:seed` sets `mustChangePassword=true`, dashboard blocks until changed) and rotate `JWT_SECRET` (production refuses to boot with the public placeholder).
 - Observability: prod warns at boot when `SENTRY_DSN` is empty or PostHog consent is denied. Rate-limits warn when `REDIS_URL` is empty (single-replica mode).
 
+## Renaming from DevKit
+
+Compose prefixes every volume with the project name, so a rename boots against an empty database unless the volumes are copied:
+
+```sh
+# 1. stop the old stack and move the deploy directory
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+mv ~/dev/devkit ~/dev/baseware
+
+# 2. clone each volume under the new project prefix
+for v in postgres_data postgres_backups redis_data server-generated; do
+  docker volume create "baseware_${v}"
+  docker run --rm -v "devkit_${v}":/from -v "baseware_${v}":/to alpine cp -a /from/. /to/
+done
+
+# 3. start from the new directory
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d
+```
+
+`JWT_ISSUER`/`JWT_AUDIENCE` defaults also changed, and tokens are verified against them: existing refresh tokens stop validating, so every session signs in again. Keep the old values in `.env` to skip that, or accept the one-time re-login.
+
 ## Backup / restore runbook
 
 ```sh
@@ -31,7 +52,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile with-r
 docker compose -f docker-compose.yml -f docker-compose.prod.yml exec db-backup ls -l /backups
 # restore (downtime window, tested monthly)
 docker compose -f docker-compose.yml -f docker-compose.prod.yml down
-docker volume rm devkit_postgres_data
+docker volume rm baseware_postgres_data
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d db
 cat backups/latest.sql.gz | gunzip | docker compose exec -T db psql -U $DB_USER -d $DB_NAME
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d

@@ -21,7 +21,7 @@ export function Brand({ markOnly = false, collapsed = false, className }: Props)
           <path d="M18.2 4.5 8.5 18.1h6.6l-1.3 9.4 9.7-13.6h-6.6l1.3-9.4Z" fill="#fff" />
         </svg>
       </span>
-      {!markOnly && <span className={styles.name}>DevKit</span>}
+      {!markOnly && <span className={styles.name}>Baseware</span>}
     </span>
   );
 }

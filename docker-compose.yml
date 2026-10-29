@@ -1,7 +1,7 @@
 # ── Base: shared services, networks, volumes ──────────────────────────────
 # Dev:   docker compose up
 # Prod:  docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d
-name: devkit
+name: baseware
 
 services:
   db:
@@ -25,8 +25,8 @@ services:
       - SERVER_PORT=${SERVER_PORT:-3000}
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
-      - JWT_ISSUER=${JWT_ISSUER:-devkit}
-      - JWT_AUDIENCE=${JWT_AUDIENCE:-devkit-web}
+      - JWT_ISSUER=${JWT_ISSUER:-baseware}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-baseware-web}
       - ACCESS_TOKEN_TTL=${ACCESS_TOKEN_TTL:-15m}
       - REFRESH_TOKEN_TTL=${REFRESH_TOKEN_TTL:-7d}
       - BCRYPT_COST=${BCRYPT_COST:-12}
